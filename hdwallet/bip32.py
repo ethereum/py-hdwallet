@@ -199,11 +199,14 @@ def get_master_key(bs: bytes) -> ExtPrivateKey:
 def priv_to_base58(
     version: str,
     depth: int,
-    fingerprint: bytes,
     child_number: int,
     chain_code: bytes,
     k: PrivateKey,
+    fingerprint: bytes = None,
 ) -> str:
+    if fingerprint is None:
+        fingerprint = fingerprint_for_prv_key(k)
+
     version_bytes = BITCOIN_VERSION_BYTES[version]
     depth_byte = depth.to_bytes(1, 'big')
     child_number_bytes = ser_32(child_number)
@@ -234,11 +237,14 @@ def priv_to_base58(
 def pub_to_base58(
     version: str,
     depth: int,
-    fingerprint: bytes,
     child_number: int,
     chain_code: bytes,
     K: PublicKey,
+    fingerprint: bytes = None,
 ) -> str:
+    if fingerprint is None:
+        fingerprint = fingerprint_for_pub_key(K)
+
     version_bytes = BITCOIN_VERSION_BYTES[version]
     depth_byte = depth.to_bytes(1, 'big')
     child_number_bytes = ser_32(child_number)
