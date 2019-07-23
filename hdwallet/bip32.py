@@ -18,6 +18,7 @@ from ecdsa.ellipticcurve import (
     Point,
 )
 
+SECP256k1_ORD = SECP256k1.order
 SECP256k1_GEN = SECP256k1.generator
 
 PrivateKey = int
@@ -134,11 +135,11 @@ def CKDpriv(k_par: PrivateKey, c_par: ChainCode, i: Index) -> ExtPrivateKey:
     I = HMAC_SHA512(c_par, data)  # noqa: E741
     I_L, I_R = I[:32], I[32:]
 
-    parse_256_I_L = parse_256(I_L)
-    k_i = (parse_256_I_L + k_par) % SECP256k1.order
+    I_L_as_int = parse_256(I_L)
+    k_i = (I_L_as_int + k_par) % SECP256k1_ORD
     c_i = I_R
 
-    if parse_256_I_L >= SECP256k1.order or k_i == 0:
+    if I_L_as_int >= SECP256k1_ORD or k_i == 0:
         raise WalletError('Generated private key is invalid')
 
     return k_i, c_i
@@ -159,11 +160,11 @@ def CKDpub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
     I = HMAC_SHA512(c_par, data)  # noqa: E741
     I_L, I_R = I[:32], I[32:]
 
-    parse_256_I_L = parse_256(I_L)
-    K_i = point(parse_256_I_L) + K_par
+    I_L_as_int = parse_256(I_L)
+    K_i = point(I_L_as_int) + K_par
     c_i = I_R
 
-    if parse_256_I_L >= SECP256k1.order or K_i == INFINITY:
+    if I_L_as_int >= SECP256k1_ORD or K_i == INFINITY:
         raise WalletError('Generated private key is invalid')
 
     return K_i, c_i
@@ -186,11 +187,10 @@ def get_master_key(bs: bytes) -> ExtPrivateKey:
 
     I_L, I_R = I[:32], I[32:]
 
-    parse_256_I_L = parse_256(I_L)
-    k = parse_256_I_L
+    k = parse_256(I_L)
     c = I_R
 
-    if k >= SECP256k1.order or k == 0:
+    if k >= SECP256k1_ORD or k == 0:
         raise WalletError('Generated master key is invalid')
 
     return k, c
