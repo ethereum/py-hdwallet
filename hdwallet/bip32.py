@@ -108,7 +108,7 @@ def HMAC_SHA512(key: bytes, data: bytes) -> bytes:
     Returns the SHA512 HMAC bytes for the byte sequence ``data`` signed with
     the byte sequence ``key``.
     """
-    h = hmac.new(key, data, hashlib.sha3_512)
+    h = hmac.new(key, data, hashlib.sha512)
     return h.digest()
 
 
