@@ -7,7 +7,7 @@ from setuptools import (
 
 extras_require = {
     'test': [
-        "pytest==3.3.2",
+        "pytest==5.0.1",
         "pytest-xdist",
         "tox>=2.9.1,<3",
     ],
@@ -43,22 +43,23 @@ with open('./README.md') as readme:
 
 
 setup(
-    name='<PYPI_NAME>',
+    name='py-hdwallet',
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
     version='0.1.0-alpha.0',
-    description="""<PYPI_NAME>: <SHORT_DESCRIPTION>""",
+    description="""py-hdwallet: HD wallet generator.""",
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='The Ethereum Foundation',
     author_email='snakecharmers@ethereum.org',
-    url='https://github.com/ethereum/<REPO_NAME>',
+    url='https://github.com/ethereum/py-hdwallet',
     include_package_data=True,
     install_requires=[
-        "eth-utils>=1,<2",
+        "ecdsa>=0.13.2,<0.14.0",
+        "base58>=1.0.3,<1.1.0",
     ],
     python_requires='>=3.6, <4',
     extras_require=extras_require,
-    py_modules=['<MODULE_NAME>'],
+    py_modules=['hdwallet'],
     license="MIT",
     zip_safe=False,
     keywords='ethereum',

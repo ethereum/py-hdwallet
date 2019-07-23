@@ -1,7 +1,7 @@
-<PROJECT_NAME>
+py-hdwallet
 ==============================
 
-<SHORT_DESCRIPTION>
+HD wallet generator.
 
 Contents
 --------
@@ -9,7 +9,7 @@ Contents
 .. toctree::
     :maxdepth: 3
 
-    <MODULE_NAME>
+    hdwallet
     releases
 
 

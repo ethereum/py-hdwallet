@@ -1,6 +1,6 @@
-<MODULE_NAME>
-<PYPI_NAME>
-<REPO_NAME>
-<RTD_NAME>
-<PROJECT_NAME>
-<SHORT_DESCRIPTION>
+hdwallet
+py-hdwallet
+py-hdwallet
+py-hdwallet
+py-hdwallet
+HD wallet generator.
