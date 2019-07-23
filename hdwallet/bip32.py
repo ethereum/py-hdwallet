@@ -80,6 +80,28 @@ def ser_p(p: Point) -> bytes:
         return b'\x02' + ser_256(x)
 
 
+def fingerprint_for_prv_key(k: PrivateKey) -> bytes:
+    """
+    Returns fingerprint bytes for the given private key ``k``.
+    """
+    K = point(k)
+    return fingerprint_for_pub_key(K)
+
+
+def fingerprint_for_pub_key(K: PublicKey) -> bytes:
+    """
+    Returns fingerprint bytes for the given public key point ``K``.
+    """
+    K_compressed = ser_p(K)
+
+    identifier = hashlib.new(
+        'ripemd160',
+        hashlib.sha256(K_compressed).digest(),
+    ).digest()
+
+    return identifier[:4]
+
+
 def HMAC_SHA512(key: bytes, data: bytes) -> bytes:
     """
     Returns the SHA512 HMAC bytes for the byte sequence ``data`` signed with
