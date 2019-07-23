@@ -15,10 +15,10 @@ def test_master_priv():
     base58_master = priv_to_base58(
         version='mainnet_private',
         depth=0,
+        fingerprint=b'\x00' * 4,
         child_number=0,
         chain_code=c,
         k=m,
-        fingerprint=b'\x00' * 4,
     )
 
     assert base58_master == 'xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi'  # noqa: E501
@@ -36,10 +36,10 @@ def test_master_pub():
     base58_master = pub_to_base58(
         version='mainnet_public',
         depth=0,
+        fingerprint=b'\x00' * 4,
         child_number=0,
         chain_code=c_pub,
         K=M,
-        fingerprint=b'\x00' * 4,
     )
 
     assert base58_master == 'xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8'  # noqa: E501
