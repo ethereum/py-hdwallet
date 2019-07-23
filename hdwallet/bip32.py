@@ -196,18 +196,18 @@ def get_master_key(bs: bytes) -> ExtPrivateKey:
     return k, c
 
 
-def pub_to_base58(
+def priv_to_base58(
     version: str,
     depth: int,
     fingerprint: bytes,
     child_number: int,
     chain_code: bytes,
-    k: PublicKey,
+    k: PrivateKey,
 ) -> str:
     version_bytes = BITCOIN_VERSION_BYTES[version]
     depth_byte = depth.to_bytes(1, 'big')
     child_number_bytes = ser_32(child_number)
-    key_bytes = ser_p(k)
+    key_bytes = b'\x00' + ser_256(k)
 
     all_parts = (
         version_bytes,
@@ -231,18 +231,18 @@ def pub_to_base58(
     return base58.b58encode_check(all_bytes).decode('utf8')
 
 
-def priv_to_base58(
+def pub_to_base58(
     version: str,
     depth: int,
     fingerprint: bytes,
     child_number: int,
     chain_code: bytes,
-    k: PrivateKey,
+    K: PublicKey,
 ) -> str:
     version_bytes = BITCOIN_VERSION_BYTES[version]
     depth_byte = depth.to_bytes(1, 'big')
     child_number_bytes = ser_32(child_number)
-    key_bytes = b'\x00' + ser_256(k)
+    key_bytes = ser_p(K)
 
     all_parts = (
         version_bytes,
