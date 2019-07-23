@@ -1,8 +1,11 @@
 import binascii
 import hashlib
 import hmac
+import re
 
 from typing import (
+    List,
+    NamedTuple,
     Tuple,
 )
 
@@ -26,6 +29,7 @@ PublicKey = Point
 
 ChainCode = bytes
 Index = int
+Fingerprint = bytes
 
 ExtPrivateKey = Tuple[PrivateKey, ChainCode]
 ExtPublicKey = Tuple[PublicKey, ChainCode]
@@ -38,6 +42,8 @@ BITCOIN_VERSION_BYTES = {
     'testnet_public': binascii.unhexlify('043587cf'),
     'testnet_private': binascii.unhexlify('04358394'),
 }
+
+PATH_COMPONENT_RE = re.compile(r'^([0-9]+)(h)?$')
 
 
 class WalletError(Exception):
@@ -197,14 +203,14 @@ def get_master_key(bs: bytes) -> ExtPrivateKey:
 
 
 def priv_to_base58(
-    version: str,
+    network: str,
     depth: int,
     fingerprint: bytes,
     child_number: int,
     chain_code: bytes,
     k: PrivateKey,
 ) -> str:
-    version_bytes = BITCOIN_VERSION_BYTES[version]
+    version_bytes = BITCOIN_VERSION_BYTES[network + '_private']
     depth_byte = depth.to_bytes(1, 'big')
     child_number_bytes = ser_32(child_number)
     key_bytes = b'\x00' + ser_256(k)
@@ -232,14 +238,14 @@ def priv_to_base58(
 
 
 def pub_to_base58(
-    version: str,
+    network: str,
     depth: int,
     fingerprint: bytes,
     child_number: int,
     chain_code: bytes,
     K: PublicKey,
 ) -> str:
-    version_bytes = BITCOIN_VERSION_BYTES[version]
+    version_bytes = BITCOIN_VERSION_BYTES[network + '_public']
     depth_byte = depth.to_bytes(1, 'big')
     child_number_bytes = ser_32(child_number)
     key_bytes = ser_p(K)
@@ -264,3 +270,68 @@ def pub_to_base58(
     all_bytes = b''.join(all_parts)
 
     return base58.b58encode_check(all_bytes).decode('utf8')
+
+
+def parse_path(path: str) -> List[int]:
+    if path.endswith('/'):
+        raise ValueError(f'Path must not end with slash: {repr(path)}')
+
+    path_comps = path.split('/')
+    if len(path_comps) < 1:
+        raise ValueError(f'Path has no components: {repr(path)}')
+
+    child_comps = path_comps[1:]
+    child_nums = []
+    for comp in child_comps:
+        match = PATH_COMPONENT_RE.match(comp)
+        if match is None:
+            raise ValueError(f'Invalid path component: {repr(comp)}')
+
+        child_num_str, hardened = match.groups()
+        child_num = int(child_num_str)
+        if hardened is not None:
+            child_nums.append(child_num + MIN_HARDENED_INDEX)
+        else:
+            child_nums.append(child_num)
+
+    return child_nums
+
+
+class KeyInfo(NamedTuple):
+    ext_pivate: ExtPrivateKey
+    ext_public: ExtPublicKey
+    depth: int
+    parent_fingerprint: Fingerprint
+    child_number: Index
+
+
+def ext_keys_from_path(seed_hex_str: str, path: str) -> KeyInfo:
+    seed_bytes = binascii.unhexlify(seed_hex_str)
+
+    ext_master = get_master_key(seed_bytes)
+    child_nums = parse_path(path)
+
+    if len(child_nums) == 0:
+        # Return info for master keys
+        ext_private = ext_master
+        ext_public = N(*ext_master)
+
+        return KeyInfo(ext_private, ext_public, 0, b'\x00' * 4, 0)
+
+    k_par, c_par = None, None
+    ext_child = ext_master
+
+    for i in child_nums:
+        k_par, c_par = ext_child
+        ext_child = CKDpriv(k_par, c_par, i)
+
+    ext_private = ext_child
+    ext_public = N(*ext_child)
+
+    return KeyInfo(
+        ext_private,
+        ext_public,
+        len(child_nums),
+        fingerprint_for_prv_key(k_par),
+        child_nums[-1],
+    )
