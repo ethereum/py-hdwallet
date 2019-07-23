@@ -70,7 +70,7 @@ def parse_256(bs: bytes) -> int:
 
 def ser_p(p: Point) -> bytes:
     """
-    Serializes an elliptic curve point ``p`` in compressed form as descrbied in
+    Serializes an elliptic curve point ``p`` in compressed form as described in
     SEC1 spec section 2.3.3.
     """
     x, y = p.x(), p.y()
