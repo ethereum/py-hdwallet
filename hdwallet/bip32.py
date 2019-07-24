@@ -242,19 +242,19 @@ def ckd_pub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
     return ExtPublicKey(K_i, c_i)
 
 
-def N(k: PrivateKey, c: ChainCode) -> ExtPublicKey:
+def N(ext_k: ExtPrivateKey) -> ExtPublicKey:
     """
     Return the associated extended public key for the extended private key
-    composed of private key ``k`` and chain code ``c``.
+    ``ext_k``.
 
-    :param k: The private key for which an extended public key should be
-        generated.
-    :param c: The chain code for which an extended public key should be
-        generated.
+    :param ext_k: The extended private key for which an extended public key
+        should be generated.
 
     :return: The associated extended public key for the extended private key
-        ``(k, c)``.
+        ``ext_k``.
     """
+    k, c = ext_k
+
     return ExtPublicKey(point(k), c)
 
 
@@ -392,7 +392,7 @@ def ext_keys_from_path(seed_hex_str: str, path: str) -> KeyInfo:
     if len(child_nums) == 0:
         # Return info for master keys
         ext_private = ext_master
-        ext_public = N(*ext_master)
+        ext_public = N(ext_master)
 
         return KeyInfo(ext_private, ext_public, 0, b'\x00' * 4, 0)
 
@@ -404,7 +404,7 @@ def ext_keys_from_path(seed_hex_str: str, path: str) -> KeyInfo:
         ext_child = ckd_priv(k_par, c_par, i)
 
     ext_private = ext_child
-    ext_public = N(*ext_child)
+    ext_public = N(ext_child)
 
     return KeyInfo(
         ext_private,
