@@ -380,7 +380,7 @@ def parse_path(path: str) -> List[int]:
 
 
 class KeyInfo(NamedTuple):
-    ext_pivate: ExtPrivateKey
+    ext_private: ExtPrivateKey
     ext_public: ExtPublicKey
     depth: int
     parent_fingerprint: Fingerprint

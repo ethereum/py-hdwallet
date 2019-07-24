@@ -102,7 +102,7 @@ from hdwallet.bip32 import (
 def test_bip32_test_vectors(seed, path, ext_pub_ser, ext_prv_ser):
     key_info = ext_keys_from_path(seed, path)
 
-    k, c_prv = key_info.ext_pivate
+    k, c_prv = key_info.ext_private
     K, c_pub = key_info.ext_public
 
     assert c_prv == c_pub
