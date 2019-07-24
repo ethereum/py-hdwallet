@@ -212,18 +212,20 @@ def ckd_priv(ext_par: ExtPrivateKey, i: Index) -> ExtPrivateKey:
     return ExtPrivateKey(k_i, c_i)
 
 
-def ckd_pub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
+def ckd_pub(ext_par: ExtPublicKey, i: Index) -> ExtPublicKey:
     """
-    Return the extended child public key at index ``i`` for the parent public
-    key ``K_par`` with chain code ``c_par``.
+    Return the child extended public key at index ``i`` for the parent extended
+    public key ``ext_par``.
 
-    :param K_par: The public key for the parent of the child key to be
+    :param ext_par: The parent extended public key of the child key to be
         generated.
-    :param c_par: The chain code for the parent of the child key to generated.
+    :param i: The index of the child key to be generated.
 
-    :return: The extended child public key at index ``i`` for the parent with
-        private key ``k_par`` and chain code ``c_par``.
+    :return: The child extended public key at index ``i`` for the parent
+        extended public key ``ext_par``.
     """
+    K_par, c_par = ext_par
+
     if i >= MIN_HARDENED_INDEX:
         # Not possible, fail
         raise WalletError('Cannot generate hardened key from public key')
