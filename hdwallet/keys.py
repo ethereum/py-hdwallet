@@ -35,7 +35,7 @@ from .utils import (
     serialize_uint32,
     SECP256k1_ORD,
     curve_point_from_int,
-    fingerprint_for_prv_key,
+    fingerprint_from_priv_key,
 )
 
 MIN_HARDENED_INDEX = 2 ** 31
@@ -297,6 +297,6 @@ def ext_keys_from_path(seed_hex_str: str, path: str) -> ExtKeys:
         ext_child,
         N(ext_child),
         len(child_nums),
-        fingerprint_for_prv_key(ext_par.k),
+        fingerprint_from_priv_key(ext_par.k),
         child_nums[-1],
     )

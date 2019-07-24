@@ -118,7 +118,7 @@ def hmac_sha512(key: bytes, data: bytes) -> bytes:
     return h.digest()
 
 
-def fingerprint_for_prv_key(k: PrivateKey) -> bytes:
+def fingerprint_from_priv_key(k: PrivateKey) -> bytes:
     """
     Return fingerprint bytes for the given private key ``k``.
 
@@ -128,10 +128,10 @@ def fingerprint_for_prv_key(k: PrivateKey) -> bytes:
     """
     K = curve_point_from_int(k)
 
-    return fingerprint_for_pub_key(K)
+    return fingerprint_from_pub_key(K)
 
 
-def fingerprint_for_pub_key(K: PublicKey) -> bytes:
+def fingerprint_from_pub_key(K: PublicKey) -> bytes:
     """
     Return fingerprint bytes for the given public key point ``K``.
 
