@@ -1,6 +1,6 @@
 import pytest
 
-from hdwallet.bip32 import (
+from hdwallet.keys import (
     priv_to_base58,
     pub_to_base58,
     ext_keys_from_path,
@@ -8,7 +8,7 @@ from hdwallet.bip32 import (
 
 
 @pytest.mark.parametrize(
-    'seed,path,ext_pub_ser,ext_prv_ser',
+    'seed,path,ext_pub_ser,ext_prv_ser',  # type: ignore
     (
         # BIP 32 test vector 1
         (
