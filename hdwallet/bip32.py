@@ -15,7 +15,6 @@ import re
 from typing import (
     List,
     NamedTuple,
-    Tuple,
 )
 
 import base58
@@ -40,9 +39,6 @@ ChainCode = bytes
 Index = int
 Fingerprint = bytes
 
-ExtPrivateKey = Tuple[PrivateKey, ChainCode]
-ExtPublicKey = Tuple[PublicKey, ChainCode]
-
 MIN_HARDENED_INDEX = 2 ** 31
 
 BITCOIN_VERSION_BYTES = {
@@ -53,6 +49,16 @@ BITCOIN_VERSION_BYTES = {
 }
 
 PATH_COMPONENT_RE = re.compile(r'^([0-9]+)(h)?$')
+
+
+class ExtPrivateKey(NamedTuple):
+    k: PrivateKey
+    c: ChainCode
+
+
+class ExtPublicKey(NamedTuple):
+    K: PublicKey
+    c: ChainCode
 
 
 class WalletError(Exception):
@@ -202,7 +208,7 @@ def CKDpriv(k_par: PrivateKey, c_par: ChainCode, i: Index) -> ExtPrivateKey:
     if I_L_as_int >= SECP256k1_ORD or k_i == 0:
         raise WalletError('Generated private key is invalid')
 
-    return k_i, c_i
+    return ExtPrivateKey(k_i, c_i)
 
 
 def CKDpub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
@@ -234,7 +240,7 @@ def CKDpub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
     if I_L_as_int >= SECP256k1_ORD or K_i == INFINITY:
         raise WalletError('Generated private key is invalid')
 
-    return K_i, c_i
+    return ExtPublicKey(K_i, c_i)
 
 
 def N(k: PrivateKey, c: ChainCode) -> ExtPublicKey:
@@ -250,7 +256,7 @@ def N(k: PrivateKey, c: ChainCode) -> ExtPublicKey:
     :return: The associated extended public key for the extended private key
         ``(k, c)``.
     """
-    return point(k), c
+    return ExtPublicKey(point(k), c)
 
 
 def get_master_key(bs: bytes) -> ExtPrivateKey:
@@ -272,7 +278,7 @@ def get_master_key(bs: bytes) -> ExtPrivateKey:
     if k >= SECP256k1_ORD or k == 0:
         raise WalletError('Generated master key is invalid')
 
-    return k, c
+    return ExtPrivateKey(k, c)
 
 
 def priv_to_base58(
