@@ -178,18 +178,20 @@ def point(p: int) -> Point:
     return Public_key(SECP256k1_GEN, SECP256k1_GEN * p).point
 
 
-def ckd_priv(k_par: PrivateKey, c_par: ChainCode, i: Index) -> ExtPrivateKey:
+def ckd_priv(ext_par: ExtPrivateKey, i: Index) -> ExtPrivateKey:
     """
-    Return the extended child private key at index ``i`` for the parent private
-    key ``k_par`` with chain code ``c_par``.
+    Return the child extended private key at index ``i`` for the parent
+    extended private key ``ext_par``.
 
-    :param k_par: The private key for the parent of the child key to be
+    :param ext_par: The parent extended private key of the child key to be
         generated.
-    :param c_par: The chain code for the parent of the child key to generated.
+    :param i: The index of the child key to be generated.
 
-    :return: The extended child private key at index ``i`` for the parent with
-        private key ``k_par`` and chain code ``c_par``.
+    :return: The child extended private key at index ``i`` for the parent
+        extended private key ``ext_par``.
     """
+    k_par, c_par = ext_par
+
     if i >= MIN_HARDENED_INDEX:
         # Generate a hardened key
         data = b'\x00' + ser_256(k_par) + ser_32(i)
@@ -396,12 +398,12 @@ def ext_keys_from_path(seed_hex_str: str, path: str) -> KeyInfo:
 
         return KeyInfo(ext_private, ext_public, 0, b'\x00' * 4, 0)
 
-    k_par, c_par = None, None
+    ext_par = None
     ext_child = ext_master
 
     for i in child_nums:
-        k_par, c_par = ext_child
-        ext_child = ckd_priv(k_par, c_par, i)
+        ext_par = ext_child
+        ext_child = ckd_priv(ext_par, i)
 
     ext_private = ext_child
     ext_public = N(ext_child)
@@ -410,6 +412,6 @@ def ext_keys_from_path(seed_hex_str: str, path: str) -> KeyInfo:
         ext_private,
         ext_public,
         len(child_nums),
-        fingerprint_for_prv_key(k_par),
+        fingerprint_for_prv_key(ext_par.k),
         child_nums[-1],
     )
