@@ -379,7 +379,7 @@ def parse_path(path: str) -> List[int]:
     return child_nums
 
 
-class KeyInfo(NamedTuple):
+class ExtKeys(NamedTuple):
     ext_private: ExtPrivateKey
     ext_public: ExtPublicKey
     depth: int
@@ -387,32 +387,27 @@ class KeyInfo(NamedTuple):
     child_number: Index
 
 
-def ext_keys_from_path(seed_hex_str: str, path: str) -> KeyInfo:
+def ext_keys_from_path(seed_hex_str: str, path: str) -> ExtKeys:
     seed_bytes = binascii.unhexlify(seed_hex_str)
-
     ext_master = get_master_key(seed_bytes)
-    child_nums = parse_path(path)
 
+    child_nums = parse_path(path)
     if len(child_nums) == 0:
         # Return info for master keys
         ext_private = ext_master
         ext_public = N(ext_master)
 
-        return KeyInfo(ext_private, ext_public, 0, b'\x00' * 4, 0)
+        return ExtKeys(ext_private, ext_public, 0, b'\x00' * 4, 0)
 
     ext_par = None
     ext_child = ext_master
-
     for i in child_nums:
         ext_par = ext_child
         ext_child = ckd_priv(ext_par, i)
 
-    ext_private = ext_child
-    ext_public = N(ext_child)
-
-    return KeyInfo(
-        ext_private,
-        ext_public,
+    return ExtKeys(
+        ext_child,
+        N(ext_child),
         len(child_nums),
         fingerprint_for_prv_key(ext_par.k),
         child_nums[-1],
