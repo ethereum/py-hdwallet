@@ -25,7 +25,7 @@ def curve_point_from_int(p: int) -> Point:
     Return the elliptic curve point resulting from multiplication of the
     sec256k1 base point with the integer ``p``.
 
-    Corresponds directly to the "point" function in the BIP32 spec
+    Corresponds directly to the "point(p)" function in the BIP32 spec
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param p: The integer to multiply with the base point.
@@ -107,6 +107,10 @@ def hmac_sha512(key: bytes, data: bytes) -> bytes:
     """
     Return the SHA512 HMAC for the byte sequence ``data`` generated with the
     secret key ``key``.
+
+    Corresponds directly to the "HMAC-SHA512(Key = ..., Data = ...)" function
+    in the BIP32 spec
+    (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param key: The secret key used for HMAC calculation.
     :param data: The data for which an HMAC should be calculated.
