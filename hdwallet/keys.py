@@ -34,7 +34,7 @@ from .utils import (
     serialize_uint256,
     serialize_uint32,
     SECP256k1_ORD,
-    point,
+    curve_point_from_int,
     fingerprint_for_prv_key,
 )
 
@@ -83,7 +83,7 @@ def ckd_priv(ext_par: ExtPrivateKey, i: Index) -> ExtPrivateKey:
         data = b'\x00' + serialize_uint256(k_par) + serialize_uint32(i)
     else:
         # Generate a non-hardened key
-        data = serialize_curve_point(point(k_par)) + serialize_uint32(i)
+        data = serialize_curve_point(curve_point_from_int(k_par)) + serialize_uint32(i)
 
     I = hmac_sha512(c_par, data)  # noqa: E741
     I_L, I_R = I[:32], I[32:]
@@ -123,7 +123,7 @@ def ckd_pub(ext_par: ExtPublicKey, i: Index) -> ExtPublicKey:
     I_L, I_R = I[:32], I[32:]
 
     I_L_as_int = parse_uint256(I_L)
-    K_i = point(I_L_as_int) + K_par
+    K_i = curve_point_from_int(I_L_as_int) + K_par
     c_i = I_R
 
     if I_L_as_int >= SECP256k1_ORD or K_i == INFINITY:
@@ -145,7 +145,7 @@ def N(ext_k: ExtPrivateKey) -> ExtPublicKey:
     """
     k, c = ext_k
 
-    return ExtPublicKey(point(k), c)
+    return ExtPublicKey(curve_point_from_int(k), c)
 
 
 def get_master_key(bs: bytes) -> ExtPrivateKey:

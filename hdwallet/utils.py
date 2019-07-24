@@ -87,7 +87,7 @@ def serialize_curve_point(p: Point) -> bytes:
         return b'\x02' + serialize_uint256(x)
 
 
-def point(p: int) -> Point:
+def curve_point_from_int(p: int) -> Point:
     """
     Return the elliptic curve point resulting from multiplication of the
     sec256k1 base point with the integer ``p``.
@@ -123,7 +123,7 @@ def fingerprint_for_prv_key(k: PrivateKey) -> bytes:
 
     :return: A byte sequence containing the fingerprint of ``k``.
     """
-    K = point(k)
+    K = curve_point_from_int(k)
 
     return fingerprint_for_pub_key(K)
 
