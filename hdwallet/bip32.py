@@ -1,11 +1,11 @@
 """
 Implementations of the functionality defined in BIP32
-(https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki).
+(https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
 
 This module is meant to implement the functionality laid out in the BIP32
-specification in a manner that resembles the notation of that document as
-closesly as possible.  The hope is that interested viewers will be able to
-easily use the BIP32 spec as a reference while reading the code in this module.
+specification in a manner that resembles the notation of that document.  The
+hope is that interested viewers will be able to easily use the BIP32 spec as a
+reference while reading the code in this module.
 """
 import binascii
 import hashlib
