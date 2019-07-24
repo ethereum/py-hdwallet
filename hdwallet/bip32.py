@@ -54,6 +54,10 @@ def ser_256(n: int) -> bytes:
     """
     Serialize an unsigned integer ``n`` as 32 bytes (256 bits) in big-endian
     order.
+
+    :param n: The integer to be serialized.
+
+    :return: A byte sequence containing the serialization of ``n``.
     """
     return n.to_bytes(32, 'big')
 
@@ -62,6 +66,10 @@ def ser_32(n: int) -> bytes:
     """
     Serialize an unsigned integer ``n`` as 4 bytes (32 bits) in big-endian
     order.
+
+    :param n: The integer to be serialized.
+
+    :return: A byte sequence containing the serialization of ``n``.
     """
     return n.to_bytes(4, 'big')
 
@@ -70,6 +78,10 @@ def parse_256(bs: bytes) -> int:
     """
     Parse an unsigned integer encoded in big-endian order from the length 32
     byte sequence ``bs``.
+
+    :param bs: The byte sequence to be parsed.
+
+    :return: The unsigned integer represented by ``bs``.
     """
     assert len(bs) == 32
 
@@ -80,6 +92,10 @@ def ser_p(p: Point) -> bytes:
     """
     Serialize an elliptic curve point ``p`` in compressed form as described in
     SEC1v2 (https://secg.org/sec1-v2.pdf) section 2.3.3.
+
+    :param p: The elliptic curve point to be serialized.
+
+    :return: A byte sequence containing the serialization of ``n``.
     """
     x, y = p.x(), p.y()
 
@@ -92,14 +108,23 @@ def ser_p(p: Point) -> bytes:
 def fingerprint_for_prv_key(k: PrivateKey) -> bytes:
     """
     Return fingerprint bytes for the given private key ``k``.
+
+    :param k: The private key for which a fingerprint should be generated.
+
+    :return: A byte sequence containing the fingerprint of ``k``.
     """
     K = point(k)
+
     return fingerprint_for_pub_key(K)
 
 
 def fingerprint_for_pub_key(K: PublicKey) -> bytes:
     """
     Return fingerprint bytes for the given public key point ``K``.
+
+    :param k: The public key for which a fingerprint should be generated.
+
+    :return: A byte sequence containing the fingerprint of ``K``.
     """
     K_compressed = ser_p(K)
 
@@ -113,8 +138,14 @@ def fingerprint_for_pub_key(K: PublicKey) -> bytes:
 
 def HMAC_SHA512(key: bytes, data: bytes) -> bytes:
     """
-    Return the SHA512 HMAC bytes for the byte sequence ``data`` signed with the
-    byte sequence ``key``.
+    Return the SHA512 HMAC for the byte sequence ``data`` generated with the
+    secret key ``key``.
+
+    :param key: The secret key used for HMAC calculation.
+    :param data: The data for which an HMAC should be calculated.
+
+    :return: A byte sequence containing the HMAC of ``data`` generated with the
+        secret key ``key``.
     """
     h = hmac.new(key, data, hashlib.sha512)
     return h.digest()
@@ -124,6 +155,11 @@ def point(p: int) -> Point:
     """
     Return the elliptic curve point resulting from multiplication of the
     sec256k1 base point with the integer ``p``.
+
+    :param p: The integer to multiply with the base point.
+
+    :return: The point resulting from multiplcation of the base point with
+        ``p``.
     """
     return Public_key(SECP256k1_GEN, SECP256k1_GEN * p).point
 
@@ -132,6 +168,13 @@ def CKDpriv(k_par: PrivateKey, c_par: ChainCode, i: Index) -> ExtPrivateKey:
     """
     Return the extended child private key at index ``i`` for the parent private
     key ``k_par`` with chain code ``c_par``.
+
+    :param k_par: The private key for the parent of the child key to be
+        generated.
+    :param c_par: The chain code for the parent of the child key to generated.
+
+    :return: The extended child private key at index ``i`` for the parent with
+        private key ``k_par`` and chain code ``c_par``.
     """
     if i >= MIN_HARDENED_INDEX:
         # Generate a hardened key
@@ -157,6 +200,13 @@ def CKDpub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
     """
     Return the extended child public key at index ``i`` for the parent public
     key ``K_par`` with chain code ``c_par``.
+
+    :param K_par: The public key for the parent of the child key to be
+        generated.
+    :param c_par: The chain code for the parent of the child key to generated.
+
+    :return: The extended child public key at index ``i`` for the parent with
+        private key ``k_par`` and chain code ``c_par``.
     """
     if i >= MIN_HARDENED_INDEX:
         # Not possible, fail
@@ -182,6 +232,14 @@ def N(k: PrivateKey, c: ChainCode) -> ExtPublicKey:
     """
     Return the associated extended public key for the extended private key
     composed of private key ``k`` and chain code ``c``.
+
+    :param k: The private key for which an extended public key should be
+        generated.
+    :param c: The chain code for which an extended public key should be
+        generated.
+
+    :return: The associated extended public key for the extended private key
+        ``(k, c)``.
     """
     return point(k), c
 
@@ -189,6 +247,11 @@ def N(k: PrivateKey, c: ChainCode) -> ExtPublicKey:
 def get_master_key(bs: bytes) -> ExtPrivateKey:
     """
     Return an extended master key generated from seed bytes ``bs``.
+
+    :param bs: The seed bytes to use for master key generation.
+
+    :return: The extended master key resulting from generation with seed bytes
+        ``bs``.
     """
     I = HMAC_SHA512(b'Bitcoin seed', bs)  # noqa: E741
 
