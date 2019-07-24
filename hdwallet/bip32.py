@@ -158,7 +158,7 @@ def point(p: int) -> Point:
 
     :param p: The integer to multiply with the base point.
 
-    :return: The point resulting from multiplcation of the base point with
+    :return: The point resulting from multiplication of the base point with
         ``p``.
     """
     return Public_key(SECP256k1_GEN, SECP256k1_GEN * p).point
