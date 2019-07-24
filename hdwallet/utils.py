@@ -20,19 +20,20 @@ SECP256k1_ORD = SECP256k1.order
 SECP256k1_GEN = SECP256k1.generator
 
 
-def serialize_uint256(n: int) -> bytes:
+def curve_point_from_int(p: int) -> Point:
     """
-    Serialize an unsigned integer ``n`` as 32 bytes (256 bits) in big-endian
-    order.
+    Return the elliptic curve point resulting from multiplication of the
+    sec256k1 base point with the integer ``p``.
 
-    Corresponds directly to the "ser_256" function in the BIP32 spec
+    Corresponds directly to the "point" function in the BIP32 spec
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
-    :param n: The integer to be serialized.
+    :param p: The integer to multiply with the base point.
 
-    :return: A byte sequence containing the serialization of ``n``.
+    :return: The point resulting from multiplication of the base point with
+        ``p``.
     """
-    return n.to_bytes(32, 'big')
+    return Public_key(SECP256k1_GEN, SECP256k1_GEN * p).point
 
 
 def serialize_uint32(n: int) -> bytes:
@@ -40,7 +41,7 @@ def serialize_uint32(n: int) -> bytes:
     Serialize an unsigned integer ``n`` as 4 bytes (32 bits) in big-endian
     order.
 
-    Corresponds directly to the "ser_32" function in the BIP32 spec
+    Corresponds directly to the "ser_32(i)" function in the BIP32 spec
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param n: The integer to be serialized.
@@ -50,21 +51,19 @@ def serialize_uint32(n: int) -> bytes:
     return n.to_bytes(4, 'big')
 
 
-def parse_uint256(bs: bytes) -> int:
+def serialize_uint256(n: int) -> bytes:
     """
-    Parse an unsigned integer encoded in big-endian order from the length 32
-    byte sequence ``bs``.
+    Serialize an unsigned integer ``n`` as 32 bytes (256 bits) in big-endian
+    order.
 
-    Corresponds directly to the "parse_256" function in the BIP32 spec
+    Corresponds directly to the "ser_256(p)" function in the BIP32 spec
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
-    :param bs: The byte sequence to be parsed.
+    :param n: The integer to be serialized.
 
-    :return: The unsigned integer represented by ``bs``.
+    :return: A byte sequence containing the serialization of ``n``.
     """
-    assert len(bs) == 32
-
-    return int.from_bytes(bs, 'big')
+    return n.to_bytes(32, 'big')
 
 
 def serialize_curve_point(p: Point) -> bytes:
@@ -72,7 +71,7 @@ def serialize_curve_point(p: Point) -> bytes:
     Serialize an elliptic curve point ``p`` in compressed form as described in
     SEC1v2 (https://secg.org/sec1-v2.pdf) section 2.3.3.
 
-    Corresponds directly to the "ser_p" function in the BIP32 spec
+    Corresponds directly to the "ser_P(P)" function in the BIP32 spec
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param p: The elliptic curve point to be serialized.
@@ -87,17 +86,21 @@ def serialize_curve_point(p: Point) -> bytes:
         return b'\x02' + serialize_uint256(x)
 
 
-def curve_point_from_int(p: int) -> Point:
+def parse_uint256(bs: bytes) -> int:
     """
-    Return the elliptic curve point resulting from multiplication of the
-    sec256k1 base point with the integer ``p``.
+    Parse an unsigned integer encoded in big-endian order from the length 32
+    byte sequence ``bs``.
 
-    :param p: The integer to multiply with the base point.
+    Corresponds directly to the "parse_256(p)" function in the BIP32 spec
+    (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
-    :return: The point resulting from multiplication of the base point with
-        ``p``.
+    :param bs: The byte sequence to be parsed.
+
+    :return: The unsigned integer represented by ``bs``.
     """
-    return Public_key(SECP256k1_GEN, SECP256k1_GEN * p).point
+    assert len(bs) == 32
+
+    return int.from_bytes(bs, 'big')
 
 
 def hmac_sha512(key: bytes, data: bytes) -> bytes:
