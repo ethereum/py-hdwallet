@@ -150,7 +150,7 @@ def fingerprint_for_pub_key(K: PublicKey) -> bytes:
     return identifier[:4]
 
 
-def HMAC_SHA512(key: bytes, data: bytes) -> bytes:
+def hmac_sha512(key: bytes, data: bytes) -> bytes:
     """
     Return the SHA512 HMAC for the byte sequence ``data`` generated with the
     secret key ``key``.
@@ -178,7 +178,7 @@ def point(p: int) -> Point:
     return Public_key(SECP256k1_GEN, SECP256k1_GEN * p).point
 
 
-def CKDpriv(k_par: PrivateKey, c_par: ChainCode, i: Index) -> ExtPrivateKey:
+def ckd_priv(k_par: PrivateKey, c_par: ChainCode, i: Index) -> ExtPrivateKey:
     """
     Return the extended child private key at index ``i`` for the parent private
     key ``k_par`` with chain code ``c_par``.
@@ -197,7 +197,7 @@ def CKDpriv(k_par: PrivateKey, c_par: ChainCode, i: Index) -> ExtPrivateKey:
         # Generate a non-hardened key
         data = ser_p(point(k_par)) + ser_32(i)
 
-    I = HMAC_SHA512(c_par, data)  # noqa: E741
+    I = hmac_sha512(c_par, data)  # noqa: E741
     I_L, I_R = I[:32], I[32:]
 
     I_L_as_int = parse_256(I_L)
@@ -210,7 +210,7 @@ def CKDpriv(k_par: PrivateKey, c_par: ChainCode, i: Index) -> ExtPrivateKey:
     return ExtPrivateKey(k_i, c_i)
 
 
-def CKDpub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
+def ckd_pub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
     """
     Return the extended child public key at index ``i`` for the parent public
     key ``K_par`` with chain code ``c_par``.
@@ -229,7 +229,7 @@ def CKDpub(K_par: PublicKey, c_par: ChainCode, i: Index) -> ExtPublicKey:
         # Generate a non-hardened key
         data = ser_p(K_par) + ser_32(i)
 
-    I = HMAC_SHA512(c_par, data)  # noqa: E741
+    I = hmac_sha512(c_par, data)  # noqa: E741
     I_L, I_R = I[:32], I[32:]
 
     I_L_as_int = parse_256(I_L)
@@ -267,7 +267,7 @@ def get_master_key(bs: bytes) -> ExtPrivateKey:
     :return: The extended master key resulting from generation with seed bytes
         ``bs``.
     """
-    I = HMAC_SHA512(b'Bitcoin seed', bs)  # noqa: E741
+    I = hmac_sha512(b'Bitcoin seed', bs)  # noqa: E741
 
     I_L, I_R = I[:32], I[32:]
 
@@ -401,7 +401,7 @@ def ext_keys_from_path(seed_hex_str: str, path: str) -> KeyInfo:
 
     for i in child_nums:
         k_par, c_par = ext_child
-        ext_child = CKDpriv(k_par, c_par, i)
+        ext_child = ckd_priv(k_par, c_par, i)
 
     ext_private = ext_child
     ext_public = N(*ext_child)
