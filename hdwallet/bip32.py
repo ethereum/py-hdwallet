@@ -11,7 +11,6 @@ import binascii
 import hashlib
 import hmac
 import re
-
 from typing import (
     List,
     NamedTuple,
