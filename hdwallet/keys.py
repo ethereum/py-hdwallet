@@ -50,124 +50,129 @@ BITCOIN_VERSION_BYTES = {
 PATH_COMPONENT_RE = re.compile(r'^([0-9]+)(h)?$')
 
 
-class ExtPrivateKey(NamedTuple):
-    k: PrivateKey
-    c: ChainCode
-
-
-class ExtPublicKey(NamedTuple):
-    K: PublicKey
-    c: ChainCode
-
-
-class WalletError(Exception):
+class KeyGenerationError(Exception):
     pass
 
 
-def ckd_priv(ext_par: ExtPrivateKey, i: Index) -> ExtPrivateKey:
-    """
-    Return the child extended private key at index ``i`` for the parent
-    extended private key ``ext_par``.
+class ExtPrivateKey:
+    __slots__ = ('private_key', 'chain_code')
 
-    :param ext_par: The parent extended private key of the child key to be
-        generated.
-    :param i: The index of the child key to be generated.
+    private_key: PrivateKey
+    chain_code: ChainCode
 
-    :return: The child extended private key at index ``i`` for the parent
-        extended private key ``ext_par``.
-    """
-    k_par, c_par = ext_par
+    def __init__(self, private_key: PrivateKey, chain_code: ChainCode) -> None:
+        self.private_key = private_key
+        self.chain_code = chain_code
 
-    if i >= MIN_HARDENED_INDEX:
-        # Generate a hardened key
-        data = b'\x00' + serialize_uint256(k_par) + serialize_uint32(i)
-    else:
-        # Generate a non-hardened key
-        data = serialize_curve_point(curve_point_from_int(k_par)) + serialize_uint32(i)
+    @classmethod
+    def master_from_seed_bytes(cls, bs: bytes) -> 'ExtPrivateKey':
+        """
+        Return an extended master key generated from seed bytes ``bs``.
 
-    I = hmac_sha512(c_par, data)  # noqa: E741
-    I_L, I_R = I[:32], I[32:]
+        :param bs: The seed bytes to use for master key generation.
 
-    I_L_as_int = parse_uint256(I_L)
-    k_i = (I_L_as_int + k_par) % SECP256k1_ORD
-    c_i = I_R
+        :return: The extended master key resulting from generation with seed bytes
+            ``bs``.
+        """
+        I = hmac_sha512(b'Bitcoin seed', bs)  # noqa: E741
+        I_L, I_R = I[:32], I[32:]
 
-    if I_L_as_int >= SECP256k1_ORD or k_i == 0:
-        raise WalletError('Generated private key is invalid')
+        private_key = parse_uint256(I_L)
+        chain_code = I_R
 
-    return ExtPrivateKey(k_i, c_i)
+        if private_key >= SECP256k1_ORD or private_key == 0:
+            raise KeyGenerationError('Generated master key is invalid')
 
+        return cls(private_key, chain_code)
 
-def ckd_pub(ext_par: ExtPublicKey, i: Index) -> ExtPublicKey:
-    """
-    Return the child extended public key at index ``i`` for the parent extended
-    public key ``ext_par``.
+    def child_ext_private_key(self, i: Index) -> 'ExtPrivateKey':
+        """
+        Return the child extended private key at index ``i`` for an extended
+        private key.
 
-    :param ext_par: The parent extended public key of the child key to be
-        generated.
-    :param i: The index of the child key to be generated.
+        :param i: The index of the child key to be generated.
 
-    :return: The child extended public key at index ``i`` for the parent
-        extended public key ``ext_par``.
-    """
-    K_par, c_par = ext_par
+        :return: The child extended private key at index ``i`` for an extended
+            private key.
+        """
+        k_par, c_par = self.private_key, self.chain_code
 
-    if i >= MIN_HARDENED_INDEX:
-        # Not possible, fail
-        raise WalletError('Cannot generate hardened key from public key')
-    else:
-        # Generate a non-hardened key
-        data = serialize_curve_point(K_par) + serialize_uint32(i)
+        if i >= MIN_HARDENED_INDEX:
+            # Generate a hardened key
+            data = b'\x00' + serialize_uint256(k_par) + serialize_uint32(i)
+        else:
+            # Generate a non-hardened key
+            data = serialize_curve_point(curve_point_from_int(k_par)) + serialize_uint32(i)
 
-    I = hmac_sha512(c_par, data)  # noqa: E741
-    I_L, I_R = I[:32], I[32:]
+        I = hmac_sha512(c_par, data)  # noqa: E741
+        I_L, I_R = I[:32], I[32:]
 
-    I_L_as_int = parse_uint256(I_L)
-    K_i = curve_point_from_int(I_L_as_int) + K_par
-    c_i = I_R
+        I_L_as_int = parse_uint256(I_L)
+        k_i = (I_L_as_int + k_par) % SECP256k1_ORD
+        c_i = I_R
 
-    if I_L_as_int >= SECP256k1_ORD or K_i == INFINITY:
-        raise WalletError('Generated private key is invalid')
+        if I_L_as_int >= SECP256k1_ORD or k_i == 0:
+            raise KeyGenerationError('Generated private key is invalid')
 
-    return ExtPublicKey(K_i, c_i)
+        return type(self)(k_i, c_i)
 
-
-def N(ext_k: ExtPrivateKey) -> ExtPublicKey:
-    """
-    Return the associated extended public key for the extended private key
-    ``ext_k``.
-
-    :param ext_k: The extended private key for which an extended public key
-        should be generated.
-
-    :return: The associated extended public key for the extended private key
+    @property
+    def ext_public_key(self) -> 'ExtPublicKey':
+        """
+        Return the associated extended public key for the extended private key
         ``ext_k``.
-    """
-    k, c = ext_k
 
-    return ExtPublicKey(curve_point_from_int(k), c)
+        :param ext_k: The extended private key for which an extended public key
+            should be generated.
+
+        :return: The associated extended public key for the extended private key
+            ``ext_k``.
+        """
+        private_key, chain_code = self.private_key, self.chain_code
+
+        return ExtPublicKey(curve_point_from_int(private_key), chain_code)
 
 
-def get_master_key(bs: bytes) -> ExtPrivateKey:
-    """
-    Return an extended master key generated from seed bytes ``bs``.
+class ExtPublicKey:
+    __slots__ = ('public_key', 'chain_code')
 
-    :param bs: The seed bytes to use for master key generation.
+    public_key: PublicKey
+    chain_code: ChainCode
 
-    :return: The extended master key resulting from generation with seed bytes
-        ``bs``.
-    """
-    I = hmac_sha512(b'Bitcoin seed', bs)  # noqa: E741
+    def __init__(self, public_key: PublicKey, chain_code: ChainCode):
+        self.public_key = public_key
+        self.chain_code = chain_code
 
-    I_L, I_R = I[:32], I[32:]
+    def child_ext_public_key(self, i: Index) -> 'ExtPublicKey':
+        """
+        Return the child extended public key at index ``i`` for an extended
+        public key.
 
-    k = parse_uint256(I_L)
-    c = I_R
+        :param i: The index of the child key to be generated.
 
-    if k >= SECP256k1_ORD or k == 0:
-        raise WalletError('Generated master key is invalid')
+        :return: The child extended public key at index ``i`` for an extended
+            public key.
+        """
+        K_par, c_par = self.public_key, self.chain_code
 
-    return ExtPrivateKey(k, c)
+        if i >= MIN_HARDENED_INDEX:
+            # Not possible, fail
+            raise KeyGenerationError('Cannot generate hardened key from public key')
+        else:
+            # Generate a non-hardened key
+            data = serialize_curve_point(K_par) + serialize_uint32(i)
+
+        I = hmac_sha512(c_par, data)  # noqa: E741
+        I_L, I_R = I[:32], I[32:]
+
+        I_L_as_int = parse_uint256(I_L)
+        K_i = curve_point_from_int(I_L_as_int) + K_par
+        c_i = I_R
+
+        if I_L_as_int >= SECP256k1_ORD or K_i == INFINITY:
+            raise KeyGenerationError('Generated private key is invalid')
+
+        return type(self)(K_i, c_i)
 
 
 def priv_to_base58(
@@ -176,12 +181,12 @@ def priv_to_base58(
     fingerprint: bytes,
     child_number: int,
     chain_code: bytes,
-    k: PrivateKey,
+    private_key: PrivateKey,
 ) -> str:
     version_bytes = BITCOIN_VERSION_BYTES[network + '_private']
     depth_byte = depth.to_bytes(1, 'big')
     child_number_bytes = serialize_uint32(child_number)
-    key_bytes = b'\x00' + serialize_uint256(k)
+    key_bytes = b'\x00' + serialize_uint256(private_key)
 
     all_parts = (
         version_bytes,
@@ -211,12 +216,12 @@ def pub_to_base58(
     fingerprint: bytes,
     child_number: int,
     chain_code: bytes,
-    K: PublicKey,
+    public_key: PublicKey,
 ) -> str:
     version_bytes = BITCOIN_VERSION_BYTES[network + '_public']
     depth_byte = depth.to_bytes(1, 'big')
     child_number_bytes = serialize_uint32(child_number)
-    key_bytes = serialize_curve_point(K)
+    key_bytes = serialize_curve_point(public_key)
 
     all_parts = (
         version_bytes,
@@ -275,28 +280,31 @@ class ExtKeys(NamedTuple):
 
 def ext_keys_from_path(seed_hex_str: str, path: str) -> ExtKeys:
     seed_bytes = binascii.unhexlify(seed_hex_str)
-    ext_master = get_master_key(seed_bytes)
+    ext_master = ExtPrivateKey.master_from_seed_bytes(seed_bytes)
 
     child_nums = parse_path(path)
     if len(child_nums) == 0:
         # Return info for master keys
-        ext_private = ext_master
-        ext_public = N(ext_master)
-
-        return ExtKeys(ext_private, ext_public, 0, b'\x00' * 4, 0)
+        return ExtKeys(
+            ext_master,
+            ext_master.ext_public_key,
+            0,
+            b'\x00' * 4,
+            0,
+        )
 
     ext_par = None
     ext_child = ext_master
     for i in child_nums:
         ext_par = ext_child
-        ext_child = ckd_priv(ext_par, i)
+        ext_child = ext_par.child_ext_private_key(i)
 
     assert ext_par is not None
 
     return ExtKeys(
         ext_child,
-        N(ext_child),
+        ext_child.ext_public_key,
         len(child_nums),
-        fingerprint_from_priv_key(ext_par.k),
+        fingerprint_from_priv_key(ext_par.private_key),
         child_nums[-1],
     )

@@ -102,20 +102,23 @@ from hdwallet.keys import (
 def test_bip32_test_vectors(seed, path, ext_pub_ser, ext_prv_ser):
     key_info = ext_keys_from_path(seed, path)
 
-    k, c_prv = key_info.ext_private
-    K, c_pub = key_info.ext_public
+    ext_private = key_info.ext_private
+    ext_public = key_info.ext_public
+
+    private_key, c_prv = ext_private.private_key, ext_private.chain_code
+    public_key, c_pub = ext_public.public_key, ext_public.chain_code
 
     assert c_prv == c_pub
 
-    c = c_prv
+    chain_code = c_prv
 
     base58_prv = priv_to_base58(
         network='mainnet',
         depth=key_info.depth,
         fingerprint=key_info.parent_fingerprint,
         child_number=key_info.child_number,
-        chain_code=c,
-        k=k,
+        chain_code=chain_code,
+        private_key=private_key,
     )
 
     assert base58_prv == ext_prv_ser
@@ -125,8 +128,8 @@ def test_bip32_test_vectors(seed, path, ext_pub_ser, ext_prv_ser):
         depth=key_info.depth,
         fingerprint=key_info.parent_fingerprint,
         child_number=key_info.child_number,
-        chain_code=c,
-        K=K,
+        chain_code=chain_code,
+        public_key=public_key,
     )
 
     assert base58_pub == ext_pub_ser
