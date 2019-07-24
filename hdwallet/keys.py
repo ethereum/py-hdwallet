@@ -65,7 +65,23 @@ class ExtPrivateKey:
         self.chain_code = chain_code
 
     @classmethod
-    def master_from_seed_bytes(cls, bs: bytes) -> 'ExtPrivateKey':
+    def master_from_hexstr(cls, hexstr: str) -> 'ExtPrivateKey':
+        """
+        Return an extended master key generated from seed bytes encoded in the
+        hex string ``hexstr``.
+
+        :param hexstr: The hexstr that represents the seed bytes to use for
+            master key generation.
+
+        :return: The extended master key resulting from generation with seed
+            bytes encoded in ``hexstr``.
+        """
+        seed_bytes = binascii.unhexlify(hexstr)
+
+        return cls.master_from_bytes(seed_bytes)
+
+    @classmethod
+    def master_from_bytes(cls, bs: bytes) -> 'ExtPrivateKey':
         """
         Return an extended master key generated from seed bytes ``bs``.
 
@@ -279,8 +295,7 @@ class ExtKeys(NamedTuple):
 
 
 def ext_keys_from_path(seed_hex_str: str, path: str) -> ExtKeys:
-    seed_bytes = binascii.unhexlify(seed_hex_str)
-    ext_master = ExtPrivateKey.master_from_seed_bytes(seed_bytes)
+    ext_master = ExtPrivateKey.master_from_hexstr(seed_hex_str)
 
     child_nums = parse_path(path)
     if len(child_nums) == 0:
