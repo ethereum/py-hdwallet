@@ -8,35 +8,35 @@ hope is that interested viewers will be able to easily use the BIP32 spec as a
 reference while reading the code in this module.
 """
 import binascii
-import hashlib
-import hmac
 import re
 from typing import (
+    cast,
     List,
     NamedTuple,
 )
 
 import base58
-from ecdsa import (
-    SECP256k1,
-)
-from ecdsa.ecdsa import (
-    Public_key,
-)
 from ecdsa.ellipticcurve import (
     INFINITY,
-    Point,
 )
 
-SECP256k1_ORD = SECP256k1.order
-SECP256k1_GEN = SECP256k1.generator
-
-PrivateKey = int
-PublicKey = Point
-
-ChainCode = bytes
-Index = int
-Fingerprint = bytes
+from .typing import (
+    ChainCode,
+    Fingerprint,
+    Index,
+    PublicKey,
+    PrivateKey,
+)
+from .utils import (
+    hmac_sha512,
+    parse_uint256,
+    serialize_curve_point,
+    serialize_uint256,
+    serialize_uint32,
+    SECP256k1_ORD,
+    point,
+    fingerprint_for_prv_key,
+)
 
 MIN_HARDENED_INDEX = 2 ** 31
 
@@ -64,120 +64,6 @@ class WalletError(Exception):
     pass
 
 
-def ser_256(n: int) -> bytes:
-    """
-    Serialize an unsigned integer ``n`` as 32 bytes (256 bits) in big-endian
-    order.
-
-    :param n: The integer to be serialized.
-
-    :return: A byte sequence containing the serialization of ``n``.
-    """
-    return n.to_bytes(32, 'big')
-
-
-def ser_32(n: int) -> bytes:
-    """
-    Serialize an unsigned integer ``n`` as 4 bytes (32 bits) in big-endian
-    order.
-
-    :param n: The integer to be serialized.
-
-    :return: A byte sequence containing the serialization of ``n``.
-    """
-    return n.to_bytes(4, 'big')
-
-
-def parse_256(bs: bytes) -> int:
-    """
-    Parse an unsigned integer encoded in big-endian order from the length 32
-    byte sequence ``bs``.
-
-    :param bs: The byte sequence to be parsed.
-
-    :return: The unsigned integer represented by ``bs``.
-    """
-    assert len(bs) == 32
-
-    return int.from_bytes(bs, 'big')
-
-
-def ser_p(p: Point) -> bytes:
-    """
-    Serialize an elliptic curve point ``p`` in compressed form as described in
-    SEC1v2 (https://secg.org/sec1-v2.pdf) section 2.3.3.
-
-    :param p: The elliptic curve point to be serialized.
-
-    :return: A byte sequence containing the serialization of ``n``.
-    """
-    x, y = p.x(), p.y()
-
-    if y & 1:
-        return b'\x03' + ser_256(x)
-    else:
-        return b'\x02' + ser_256(x)
-
-
-def fingerprint_for_prv_key(k: PrivateKey) -> bytes:
-    """
-    Return fingerprint bytes for the given private key ``k``.
-
-    :param k: The private key for which a fingerprint should be generated.
-
-    :return: A byte sequence containing the fingerprint of ``k``.
-    """
-    K = point(k)
-
-    return fingerprint_for_pub_key(K)
-
-
-def fingerprint_for_pub_key(K: PublicKey) -> bytes:
-    """
-    Return fingerprint bytes for the given public key point ``K``.
-
-    :param k: The public key for which a fingerprint should be generated.
-
-    :return: A byte sequence containing the fingerprint of ``K``.
-    """
-    K_compressed = ser_p(K)
-
-    identifier = hashlib.new(
-        'ripemd160',
-        hashlib.sha256(K_compressed).digest(),
-    ).digest()
-
-    return identifier[:4]
-
-
-def hmac_sha512(key: bytes, data: bytes) -> bytes:
-    """
-    Return the SHA512 HMAC for the byte sequence ``data`` generated with the
-    secret key ``key``.
-
-    :param key: The secret key used for HMAC calculation.
-    :param data: The data for which an HMAC should be calculated.
-
-    :return: A byte sequence containing the HMAC of ``data`` generated with the
-        secret key ``key``.
-    """
-    h = hmac.new(key, data, hashlib.sha512)
-    return h.digest()
-
-
-def point(p: int) -> Point:
-    """
-    Return the elliptic curve point resulting from multiplication of the
-    sec256k1 base point with the integer ``p``.
-
-    :param p: The integer to multiply with the base point.
-
-    :return: The point resulting from multiplication of the base point with
-        ``p``.
-    """
-    return Public_key(SECP256k1_GEN, SECP256k1_GEN * p).point
-
-
 def ckd_priv(ext_par: ExtPrivateKey, i: Index) -> ExtPrivateKey:
     """
     Return the child extended private key at index ``i`` for the parent
@@ -194,15 +80,15 @@ def ckd_priv(ext_par: ExtPrivateKey, i: Index) -> ExtPrivateKey:
 
     if i >= MIN_HARDENED_INDEX:
         # Generate a hardened key
-        data = b'\x00' + ser_256(k_par) + ser_32(i)
+        data = b'\x00' + serialize_uint256(k_par) + serialize_uint32(i)
     else:
         # Generate a non-hardened key
-        data = ser_p(point(k_par)) + ser_32(i)
+        data = serialize_curve_point(point(k_par)) + serialize_uint32(i)
 
     I = hmac_sha512(c_par, data)  # noqa: E741
     I_L, I_R = I[:32], I[32:]
 
-    I_L_as_int = parse_256(I_L)
+    I_L_as_int = parse_uint256(I_L)
     k_i = (I_L_as_int + k_par) % SECP256k1_ORD
     c_i = I_R
 
@@ -231,12 +117,12 @@ def ckd_pub(ext_par: ExtPublicKey, i: Index) -> ExtPublicKey:
         raise WalletError('Cannot generate hardened key from public key')
     else:
         # Generate a non-hardened key
-        data = ser_p(K_par) + ser_32(i)
+        data = serialize_curve_point(K_par) + serialize_uint32(i)
 
     I = hmac_sha512(c_par, data)  # noqa: E741
     I_L, I_R = I[:32], I[32:]
 
-    I_L_as_int = parse_256(I_L)
+    I_L_as_int = parse_uint256(I_L)
     K_i = point(I_L_as_int) + K_par
     c_i = I_R
 
@@ -275,7 +161,7 @@ def get_master_key(bs: bytes) -> ExtPrivateKey:
 
     I_L, I_R = I[:32], I[32:]
 
-    k = parse_256(I_L)
+    k = parse_uint256(I_L)
     c = I_R
 
     if k >= SECP256k1_ORD or k == 0:
@@ -294,8 +180,8 @@ def priv_to_base58(
 ) -> str:
     version_bytes = BITCOIN_VERSION_BYTES[network + '_private']
     depth_byte = depth.to_bytes(1, 'big')
-    child_number_bytes = ser_32(child_number)
-    key_bytes = b'\x00' + ser_256(k)
+    child_number_bytes = serialize_uint32(child_number)
+    key_bytes = b'\x00' + serialize_uint256(k)
 
     all_parts = (
         version_bytes,
@@ -316,7 +202,7 @@ def priv_to_base58(
 
     all_bytes = b''.join(all_parts)
 
-    return base58.b58encode_check(all_bytes).decode('utf8')
+    return cast(str, base58.b58encode_check(all_bytes).decode('utf8'))
 
 
 def pub_to_base58(
@@ -329,8 +215,8 @@ def pub_to_base58(
 ) -> str:
     version_bytes = BITCOIN_VERSION_BYTES[network + '_public']
     depth_byte = depth.to_bytes(1, 'big')
-    child_number_bytes = ser_32(child_number)
-    key_bytes = ser_p(K)
+    child_number_bytes = serialize_uint32(child_number)
+    key_bytes = serialize_curve_point(K)
 
     all_parts = (
         version_bytes,
@@ -351,7 +237,7 @@ def pub_to_base58(
 
     all_bytes = b''.join(all_parts)
 
-    return base58.b58encode_check(all_bytes).decode('utf8')
+    return cast(str, base58.b58encode_check(all_bytes).decode('utf8'))
 
 
 def parse_path(path: str) -> List[int]:
@@ -404,6 +290,8 @@ def ext_keys_from_path(seed_hex_str: str, path: str) -> ExtKeys:
     for i in child_nums:
         ext_par = ext_child
         ext_child = ckd_priv(ext_par, i)
+
+    assert ext_par is not None
 
     return ExtKeys(
         ext_child,
