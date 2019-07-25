@@ -85,11 +85,11 @@ class ExtPrivateKey:
         :return: The extended master key resulting from generation with seed bytes
             ``bs``.
         """
-        I = hmac_sha512(b'Bitcoin seed', bs)
-        I_L, I_R = I[:32], I[32:]
+        hmac_bytes = hmac_sha512(b'Bitcoin seed', bs)
+        L, R = hmac_bytes[:32], hmac_bytes[32:]
 
-        private_key = parse_uint256(I_L)
-        chain_code = I_R
+        private_key = parse_uint256(L)
+        chain_code = R
 
         if private_key >= SECP256k1_ORD or private_key == 0:
             raise KeyGenerationError('Generated master private key is outside acceptable range')
@@ -115,14 +115,14 @@ class ExtPrivateKey:
                 curve_point_from_int(self.private_key),
             ) + serialize_uint32(i)
 
-        I = hmac_sha512(self.chain_code, data)
-        I_L, I_R = I[:32], I[32:]
+        hmac_bytes = hmac_sha512(self.chain_code, data)
+        L, R = hmac_bytes[:32], hmac_bytes[32:]
 
-        I_L_as_int = parse_uint256(I_L)
-        private_key_i = (I_L_as_int + self.private_key) % SECP256k1_ORD
-        chain_code_i = I_R
+        L_as_int = parse_uint256(L)
+        private_key_i = (L_as_int + self.private_key) % SECP256k1_ORD
+        chain_code_i = R
 
-        if I_L_as_int >= SECP256k1_ORD or private_key_i == 0:
+        if L_as_int >= SECP256k1_ORD or private_key_i == 0:
             raise KeyGenerationError('Generated child private key is outside acceptable range')
 
         return type(self)(private_key_i, chain_code_i)
@@ -169,14 +169,14 @@ class ExtPublicKey:
             # Generate a non-hardened key
             data = serialize_curve_point(self.public_key) + serialize_uint32(i)
 
-        I = hmac_sha512(self.chain_code, data)
-        I_L, I_R = I[:32], I[32:]
+        hmac_bytes = hmac_sha512(self.chain_code, data)
+        L, R = hmac_bytes[:32], hmac_bytes[32:]
 
-        I_L_as_int = parse_uint256(I_L)
-        public_key_i = curve_point_from_int(I_L_as_int) + self.public_key
-        chain_code_i = I_R
+        L_as_int = parse_uint256(L)
+        public_key_i = curve_point_from_int(L_as_int) + self.public_key
+        chain_code_i = R
 
-        if I_L_as_int >= SECP256k1_ORD or public_key_i == INFINITY:
+        if L_as_int >= SECP256k1_ORD or public_key_i == INFINITY:
             raise KeyGenerationError('Generated child public key is outside acceptable range')
 
         return type(self)(public_key_i, chain_code_i)
