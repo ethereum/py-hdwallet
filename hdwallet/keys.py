@@ -65,8 +65,8 @@ class ExtPrivateKey:
         Return an extended master key generated from seed bytes encoded in the
         hex string ``hexstr``.
 
-        :param hexstr: The hexstr that represents the seed bytes to use for
-            master key generation.
+        :param hexstr: A string containing a hex representation of the seed
+            bytes to use for master key generation.
 
         :return: The extended master key resulting from generation with seed
             bytes encoded in ``hexstr``.
