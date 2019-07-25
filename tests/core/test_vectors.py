@@ -1,9 +1,9 @@
 import pytest
 
 from hdwallet.keys import (
+    ext_keys_from_path,
     priv_to_base58,
     pub_to_base58,
-    ext_keys_from_path,
 )
 
 

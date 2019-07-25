@@ -1,9 +1,9 @@
 import binascii
 import re
 from typing import (
-    cast,
     List,
     NamedTuple,
+    cast,
 )
 
 import base58
@@ -15,18 +15,18 @@ from .typing import (
     ChainCode,
     Fingerprint,
     Index,
-    PublicKey,
     PrivateKey,
+    PublicKey,
 )
 from .utils import (
-    hmac_sha512,
-    parse_uint256,
-    serialize_curve_point,
-    serialize_uint256,
-    serialize_uint32,
     SECP256k1_ORD,
     curve_point_from_int,
     fingerprint_from_priv_key,
+    hmac_sha512,
+    parse_uint256,
+    serialize_curve_point,
+    serialize_uint32,
+    serialize_uint256,
 )
 
 MIN_HARDENED_INDEX = 2 ** 31
