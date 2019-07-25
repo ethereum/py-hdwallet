@@ -57,7 +57,14 @@ class ExtPrivateKey:
 
     def __init__(self, private_key: PrivateKey, chain_code: ChainCode) -> None:
         self.private_key = private_key
+        """
+        The integer value of an extended private key's private key.
+        """
+
         self.chain_code = chain_code
+        """
+        The bytes of an extended private key's chain code.
+        """
 
     @classmethod
     def master_from_hexstr(cls, hexstr: str) -> 'ExtPrivateKey':
@@ -98,13 +105,13 @@ class ExtPrivateKey:
 
     def child_ext_private_key(self, i: Index) -> 'ExtPrivateKey':
         """
-        Return the child extended private key at index ``i`` for an extended
-        private key.
+        Return the child extended private key at index ``i`` for a parent
+        extended private key instance.
 
         :param i: The index of the child key to be generated.
 
-        :return: The child extended private key at index ``i`` for an extended
-            private key.
+        :return: The child extended private key at index ``i`` for a parent
+            extended private key instance.
         """
         if i >= MIN_HARDENED_INDEX:
             # Generate a hardened key
@@ -130,14 +137,10 @@ class ExtPrivateKey:
     @property
     def ext_public_key(self) -> 'ExtPublicKey':
         """
-        Return the associated extended public key for the extended private key
-        ``ext_k``.
+        The associated extended public key for an extended private key.
 
-        :param ext_k: The extended private key for which an extended public key
-            should be generated.
-
-        :return: The associated extended public key for the extended private key
-            ``ext_k``.
+        :return: The associated extended public key for an extended private
+            key.
         """
         return ExtPublicKey(curve_point_from_int(self.private_key), self.chain_code)
 
@@ -154,13 +157,13 @@ class ExtPublicKey:
 
     def child_ext_public_key(self, i: Index) -> 'ExtPublicKey':
         """
-        Return the child extended public key at index ``i`` for an extended
-        public key.
+        Return the child extended public key at index ``i`` for a parent
+        extended public key instance.
 
         :param i: The index of the child key to be generated.
 
-        :return: The child extended public key at index ``i`` for an extended
-            public key.
+        :return: The child extended public key at index ``i`` for the parent
+            extended public key instance.
         """
         if i >= MIN_HARDENED_INDEX:
             # Not possible, fail
