@@ -42,6 +42,9 @@ PATH_COMPONENT_RE = re.compile(r'^([0-9]+)(h)?$')
 
 
 class KeyGenerationError(Exception):
+    """
+    Raised when unsuitable values are encountered during key generation.
+    """
     pass
 
 
@@ -88,7 +91,7 @@ class ExtPrivateKey:
         chain_code = I_R
 
         if private_key >= SECP256k1_ORD or private_key == 0:
-            raise KeyGenerationError('Generated master key is invalid')
+            raise KeyGenerationError('Generated master private key is outside acceptable range')
 
         return cls(private_key, chain_code)
 
@@ -121,7 +124,7 @@ class ExtPrivateKey:
         chain_code_i = I_R
 
         if I_L_as_int >= SECP256k1_ORD or private_key_i == 0:
-            raise KeyGenerationError('Generated private key is invalid')
+            raise KeyGenerationError('Generated child private key is outside acceptable range')
 
         return type(self)(private_key_i, chain_code_i)
 
@@ -179,7 +182,7 @@ class ExtPublicKey:
         chain_code_i = I_R
 
         if I_L_as_int >= SECP256k1_ORD or public_key_i == INFINITY:
-            raise KeyGenerationError('Generated private key is invalid')
+            raise KeyGenerationError('Generated child public key is outside acceptable range')
 
         return type(self)(public_key_i, chain_code_i)
 
