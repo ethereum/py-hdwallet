@@ -11,6 +11,9 @@ from ecdsa.ellipticcurve import (
     INFINITY,
 )
 
+from .exceptions import (
+    KeyGenerationError,
+)
 from .typing import (
     ChainCode,
     Fingerprint,
@@ -39,13 +42,6 @@ BITCOIN_VERSION_BYTES = {
 }
 
 PATH_COMPONENT_RE = re.compile(r'^([0-9]+)(h)?$')
-
-
-class KeyGenerationError(Exception):
-    """
-    Raised when unsuitable values are encountered during key generation.
-    """
-    pass
 
 
 class ExtPrivateKey:
