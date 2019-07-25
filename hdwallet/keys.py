@@ -49,6 +49,11 @@ class KeyGenerationError(Exception):
 
 
 class ExtPrivateKey:
+    """
+    A class to represent extended private keys in a wallet hierarchy.  Can
+    represent the master extended private key or any child extended private
+    key.
+    """
     __slots__ = ('private_key', 'chain_code')
 
     private_key: PrivateKey
