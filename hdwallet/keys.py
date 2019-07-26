@@ -61,7 +61,8 @@ class ExtPrivateKey:
     def __init__(self, private_key: PrivateKey, chain_code: ChainCode) -> None:
         self.private_key = private_key
         """
-        The integer value of an extended private key's private key.
+        The integer value of the ECC private key contained in an extended
+        private key.
         """
 
         self.chain_code = chain_code
@@ -174,7 +175,15 @@ class ExtPublicKey:
 
     def __init__(self, public_key: PublicKey, chain_code: ChainCode):
         self.public_key = public_key
+        """
+        The curve point value of the ECC public key contained in an extended
+        public key.
+        """
+
         self.chain_code = chain_code
+        """
+        The bytes of an extended public key's chain code.
+        """
 
     def child_ext_public_key(self, i: Index) -> 'ExtPublicKey':
         """
