@@ -25,7 +25,10 @@ from .utils import (
     SECP256k1_ORD,
     curve_point_from_int,
     fingerprint_from_priv_key,
+    fingerprint_from_pub_key,
     hmac_sha512,
+    identifier_from_priv_key,
+    identifier_from_pub_key,
     parse_uint256,
     serialize_curve_point,
     serialize_uint32,
@@ -144,6 +147,24 @@ class ExtPrivateKey:
         """
         return ExtPublicKey(curve_point_from_int(self.private_key), self.chain_code)
 
+    @property
+    def identifier(self) -> bytes:
+        """
+        The identifier bytes for an extended private key ``k`` as described in
+        the BIP32 spec
+        (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
+        """
+        return identifier_from_priv_key(self.private_key)
+
+    @property
+    def fingerprint(self) -> bytes:
+        """
+        The fingerprint bytes for an extended private key ``k`` as described in
+        the BIP32 spec
+        (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
+        """
+        return fingerprint_from_priv_key(self.private_key)
+
 
 class ExtPublicKey:
     __slots__ = ('public_key', 'chain_code')
@@ -183,6 +204,24 @@ class ExtPublicKey:
             raise KeyGenerationError('Generated child public key is outside acceptable range')
 
         return type(self)(public_key_i, chain_code_i)
+
+    @property
+    def identifier(self) -> bytes:
+        """
+        The identifier bytes for an extended public key ``k`` as described in
+        the BIP32 spec
+        (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
+        """
+        return identifier_from_pub_key(self.public_key)
+
+    @property
+    def fingerprint(self) -> bytes:
+        """
+        The fingerprint bytes for an extended public key ``k`` as described in
+        the BIP32 spec
+        (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
+        """
+        return fingerprint_from_pub_key(self.public_key)
 
 
 def priv_to_base58(

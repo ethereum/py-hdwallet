@@ -122,9 +122,46 @@ def hmac_sha512(key: bytes, data: bytes) -> bytes:
     return h.digest()
 
 
+def identifier_from_priv_key(k: PrivateKey) -> bytes:
+    """
+    Return identifier bytes for the given private key ``k`` as described in the
+    BIP32 spec
+    (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
+
+    :param k: The private key for which an identifier should be generated.
+
+    :return: A byte sequence containing the identifier of ``k``.
+    """
+    K = curve_point_from_int(k)
+
+    return identifier_from_pub_key(K)
+
+
+def identifier_from_pub_key(K: PublicKey) -> bytes:
+    """
+    Return identifier bytes for the given public key point ``K`` as described
+    in the BIP32 spec
+    (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
+
+    :param k: The public key for which an identifier should be generated.
+
+    :return: A byte sequence containing the identifier of ``K``.
+    """
+    K_compressed = serialize_curve_point(K)
+
+    identifier = hashlib.new(
+        'ripemd160',
+        hashlib.sha256(K_compressed).digest(),
+    ).digest()
+
+    return identifier
+
+
 def fingerprint_from_priv_key(k: PrivateKey) -> bytes:
     """
-    Return fingerprint bytes for the given private key ``k``.
+    Return fingerprint bytes for the given private key ``k`` as described in
+    the BIP32 spec
+    (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
 
     :param k: The private key for which a fingerprint should be generated.
 
@@ -137,17 +174,14 @@ def fingerprint_from_priv_key(k: PrivateKey) -> bytes:
 
 def fingerprint_from_pub_key(K: PublicKey) -> bytes:
     """
-    Return fingerprint bytes for the given public key point ``K``.
+    Return fingerprint bytes for the given public key point ``K`` as described
+    in the BIP32 spec
+    (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
 
     :param k: The public key for which a fingerprint should be generated.
 
     :return: A byte sequence containing the fingerprint of ``K``.
     """
-    K_compressed = serialize_curve_point(K)
-
-    identifier = hashlib.new(
-        'ripemd160',
-        hashlib.sha256(K_compressed).digest(),
-    ).digest()
+    identifier = identifier_from_pub_key(K)
 
     return identifier[:4]
