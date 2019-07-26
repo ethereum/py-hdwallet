@@ -234,13 +234,13 @@ class ExtPublicKey:
         return fingerprint_from_pub_key(self.public_key)
 
 
-class ExtKeyNode(abc.ABC):
+class WalletNode(abc.ABC):
     __slots__ = ('depth', 'parent_fingerprint', 'child_number', 'parent')
 
     depth: int
     parent_fingerprint: Fingerprint
     child_number: Index
-    parent: Optional['ExtKeyNode']
+    parent: Optional['WalletNode']
 
     def __init__(
         self,
@@ -248,7 +248,7 @@ class ExtKeyNode(abc.ABC):
         depth: int,
         parent_fingerprint: Fingerprint,
         child_number: Index,
-        parent: 'ExtKeyNode' = None
+        parent: 'WalletNode' = None
     ) -> None:
         self.depth = depth
         """
@@ -312,7 +312,7 @@ class ExtKeyNode(abc.ABC):
         return cast(str, base58.b58encode_check(all_bytes).decode('utf8'))
 
 
-class ExtPrivateKeyNode(ExtKeyNode):
+class PrivateWalletNode(WalletNode):
     __slots__ = ('ext_private_key',)
 
     ext_private_key: ExtPrivateKey
@@ -323,7 +323,7 @@ class ExtPrivateKeyNode(ExtKeyNode):
         super().__init__(**kwargs)
 
     @classmethod
-    def master_from_hexstr(cls, seed_hex_str: str) -> 'ExtPrivateKeyNode':
+    def master_from_hexstr(cls, seed_hex_str: str) -> 'PrivateWalletNode':
         ext_private_key = ExtPrivateKey.master_from_hexstr(seed_hex_str)
 
         return cls(
@@ -342,8 +342,8 @@ class ExtPrivateKeyNode(ExtKeyNode):
         return self.ext_private_key.chain_code
 
     @property
-    def ext_public_key_node(self) -> 'ExtPublicKeyNode':
-        return ExtPublicKeyNode(
+    def ext_public_key_node(self) -> 'PublicWalletNode':
+        return PublicWalletNode(
             ext_public_key=self.ext_private_key.ext_public_key,
             depth=self.depth,
             parent_fingerprint=self.parent_fingerprint,
@@ -351,7 +351,7 @@ class ExtPrivateKeyNode(ExtKeyNode):
             parent=self.parent,
         )
 
-    def child_ext_private_key_node(self, i: Index) -> 'ExtPrivateKeyNode':
+    def child_ext_private_key_node(self, i: Index) -> 'PrivateWalletNode':
         child_ext_private_key = self.ext_private_key.child_ext_private_key(i)
         fingerprint = self.ext_private_key.fingerprint
 
@@ -364,7 +364,7 @@ class ExtPrivateKeyNode(ExtKeyNode):
         )
 
 
-class ExtPublicKeyNode(ExtKeyNode):
+class PublicWalletNode(WalletNode):
     __slots__ = ('ext_public_key',)
 
     ext_public_key: ExtPublicKey
@@ -382,7 +382,7 @@ class ExtPublicKeyNode(ExtKeyNode):
     def chain_code(self) -> bytes:
         return self.ext_public_key.chain_code
 
-    def child_ext_public_key_node(self, i: Index) -> 'ExtPublicKeyNode':
+    def child_ext_public_key_node(self, i: Index) -> 'PublicWalletNode':
         child_ext_public_key = self.ext_public_key.child_ext_public_key(i)
         fingerprint = self.ext_public_key.fingerprint
 
@@ -420,8 +420,8 @@ def parse_path(path: str) -> Tuple[Index, ...]:
     return tuple(child_nums)
 
 
-def ext_key_node_from_path(seed_hex_str: str, path: str) -> ExtPrivateKeyNode:
-    master_node = ExtPrivateKeyNode.master_from_hexstr(seed_hex_str)
+def ext_key_node_from_path(seed_hex_str: str, path: str) -> PrivateWalletNode:
+    master_node = PrivateWalletNode.master_from_hexstr(seed_hex_str)
 
     child_node = master_node
     for i in parse_path(path):
