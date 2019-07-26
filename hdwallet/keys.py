@@ -50,9 +50,9 @@ PATH_COMPONENT_RE = re.compile(r'^([0-9]+)(h)?$')
 
 class ExtPrivateKey:
     """
-    A class to represent extended private keys in a wallet hierarchy.  Can
-    represent the master extended private key or any child extended private
-    key.
+    A class to represent the key/chain-code tuple of an extended private key in
+    a wallet hierarchy.  Can represent the master extended private key or any
+    child extended private key.
     """
     __slots__ = ('private_key', 'chain_code')
 
@@ -143,9 +143,6 @@ class ExtPrivateKey:
     def ext_public_key(self) -> 'ExtPublicKey':
         """
         The associated extended public key for an extended private key.
-
-        :return: The associated extended public key for an extended private
-            key.
         """
         return ExtPublicKey(curve_point_from_int(self.private_key), self.chain_code)
 
@@ -169,6 +166,11 @@ class ExtPrivateKey:
 
 
 class ExtPublicKey:
+    """
+    A class to represent the key/chain-code tuple of an extended public key in
+    a wallet hierarchy.  Can represent the master extended public key or any
+    child extended public key.
+    """
     __slots__ = ('public_key', 'chain_code')
 
     public_key: PublicKey
