@@ -275,20 +275,20 @@ class ExtKeyNode(abc.ABC):
         If given, the parent key node from which a key node was generated.
         """
 
-    @abc.abstractmethod
-    def get_key_bytes(self) -> bytes:
+    @abc.abstractproperty
+    def serialized_key_bytes(self) -> bytes:
         pass
 
-    @abc.abstractmethod
-    def get_chain_code(self) -> bytes:
+    @abc.abstractproperty
+    def chain_code(self) -> bytes:
         pass
 
     def to_base58(self, network: str) -> str:
         version_bytes = BITCOIN_VERSION_BYTES[network]
         depth_byte = self.depth.to_bytes(1, 'big')
         child_number_bytes = serialize_uint32(self.child_number)
-        key_bytes = self.get_key_bytes()
-        chain_code = self.get_chain_code()
+        chain_code = self.chain_code
+        key_bytes = self.serialized_key_bytes
 
         all_parts = (
             version_bytes,
@@ -333,10 +333,12 @@ class ExtPrivateKeyNode(ExtKeyNode):
             child_number=0,
         )
 
-    def get_key_bytes(self) -> bytes:
+    @property
+    def serialized_key_bytes(self) -> bytes:
         return b'\x00' + serialize_uint256(self.ext_private_key.private_key)
 
-    def get_chain_code(self) -> bytes:
+    @property
+    def chain_code(self) -> bytes:
         return self.ext_private_key.chain_code
 
     @property
@@ -372,10 +374,12 @@ class ExtPublicKeyNode(ExtKeyNode):
 
         super().__init__(**kwargs)
 
-    def get_key_bytes(self) -> bytes:
+    @property
+    def serialized_key_bytes(self) -> bytes:
         return serialize_curve_point(self.ext_public_key.public_key)
 
-    def get_chain_code(self) -> bytes:
+    @property
+    def chain_code(self) -> bytes:
         return self.ext_public_key.chain_code
 
     def child_ext_public_key_node(self, i: Index) -> 'ExtPublicKeyNode':
