@@ -1,8 +1,10 @@
+import abc
 import binascii
 import re
 from typing import (
-    List,
-    NamedTuple,
+    Any,
+    Optional,
+    Tuple,
     cast,
 )
 
@@ -232,77 +234,164 @@ class ExtPublicKey:
         return fingerprint_from_pub_key(self.public_key)
 
 
-def priv_to_base58(
-    network: str,
-    depth: int,
-    fingerprint: Fingerprint,
-    child_number: int,
-    chain_code: bytes,
-    private_key: PrivateKey,
-) -> str:
-    version_bytes = BITCOIN_VERSION_BYTES[network + '_private']
-    depth_byte = depth.to_bytes(1, 'big')
-    child_number_bytes = serialize_uint32(child_number)
-    key_bytes = b'\x00' + serialize_uint256(private_key)
+class ExtKeyNode(abc.ABC):
+    __slots__ = ('depth', 'parent_fingerprint', 'child_number', 'parent')
 
-    all_parts = (
-        version_bytes,
-        depth_byte,
-        fingerprint,
-        child_number_bytes,
-        chain_code,
-        key_bytes,
-    )
-    assert tuple(map(len, all_parts)) == (
-        4,  # version bytes
-        1,  # depth bytes
-        4,  # fingerprint bytes
-        4,  # child number bytes
-        32,  # chain code bytes
-        33,  # key bytes
-    )
+    depth: int
+    parent_fingerprint: Fingerprint
+    child_number: Index
+    parent: Optional['ExtKeyNode']
 
-    all_bytes = b''.join(all_parts)
+    def __init__(
+        self,
+        *,
+        depth: int,
+        parent_fingerprint: Fingerprint,
+        child_number: Index,
+        parent: 'ExtKeyNode' = None
+    ) -> None:
+        self.depth = depth
+        """
+        The zero-indexed depth at which a node's extended key was generated in
+        a wallet hierarchy.  For master keys, this value will be zero.  For
+        children of master keys, it will be one, etc.
+        """
 
-    return cast(str, base58.b58encode_check(all_bytes).decode('utf8'))
+        self.parent_fingerprint = parent_fingerprint
+        """
+        The four byte fingerprint of the key from which a node's extended key
+        was generated.  For master keys, this value will be four zero-bytes.
+        """
+
+        self.child_number = child_number
+        """
+        The zero-indexed child number of a node's extended key.  This
+        identifies the branch taken to generate a node's extended key under its
+        parent node.  For master keys, this value will be zero.
+        """
+
+        self.parent = parent
+        """
+        If given, the parent key node from which a key node was generated.
+        """
+
+    @abc.abstractmethod
+    def get_key_bytes(self) -> bytes:
+        pass
+
+    @abc.abstractmethod
+    def get_chain_code(self) -> bytes:
+        pass
+
+    def to_base58(self, network: str) -> str:
+        version_bytes = BITCOIN_VERSION_BYTES[network]
+        depth_byte = self.depth.to_bytes(1, 'big')
+        child_number_bytes = serialize_uint32(self.child_number)
+        key_bytes = self.get_key_bytes()
+        chain_code = self.get_chain_code()
+
+        all_parts = (
+            version_bytes,
+            depth_byte,
+            self.parent_fingerprint,
+            child_number_bytes,
+            chain_code,
+            key_bytes,
+        )
+        assert tuple(map(len, all_parts)) == (
+            4,  # version bytes
+            1,  # depth bytes
+            4,  # fingerprint bytes
+            4,  # child number bytes
+            32,  # chain code bytes
+            33,  # key bytes
+        )
+
+        all_bytes = b''.join(all_parts)
+
+        return cast(str, base58.b58encode_check(all_bytes).decode('utf8'))
 
 
-def pub_to_base58(
-    network: str,
-    depth: int,
-    fingerprint: Fingerprint,
-    child_number: int,
-    chain_code: bytes,
-    public_key: PublicKey,
-) -> str:
-    version_bytes = BITCOIN_VERSION_BYTES[network + '_public']
-    depth_byte = depth.to_bytes(1, 'big')
-    child_number_bytes = serialize_uint32(child_number)
-    key_bytes = serialize_curve_point(public_key)
+class ExtPrivateKeyNode(ExtKeyNode):
+    __slots__ = ('ext_private_key',)
 
-    all_parts = (
-        version_bytes,
-        depth_byte,
-        fingerprint,
-        child_number_bytes,
-        chain_code,
-        key_bytes,
-    )
-    assert tuple(map(len, all_parts)) == (
-        4,  # version bytes
-        1,  # depth bytes
-        4,  # fingerprint bytes
-        4,  # child number bytes
-        32,  # chain code bytes
-        33,  # key bytes
-    )
+    ext_private_key: ExtPrivateKey
 
-    all_bytes = b''.join(all_parts)
+    def __init__(self, *, ext_private_key: ExtPrivateKey, **kwargs: Any) -> None:
+        self.ext_private_key = ext_private_key
 
-    return cast(str, base58.b58encode_check(all_bytes).decode('utf8'))
+        super().__init__(**kwargs)
+
+    @classmethod
+    def master_from_hexstr(cls, seed_hex_str: str) -> 'ExtPrivateKeyNode':
+        ext_private_key = ExtPrivateKey.master_from_hexstr(seed_hex_str)
+
+        return cls(
+            ext_private_key=ext_private_key,
+            depth=0,
+            parent_fingerprint=b'\x00' * 4,
+            child_number=0,
+        )
+
+    def get_key_bytes(self) -> bytes:
+        return b'\x00' + serialize_uint256(self.ext_private_key.private_key)
+
+    def get_chain_code(self) -> bytes:
+        return self.ext_private_key.chain_code
+
+    @property
+    def ext_public_key_node(self) -> 'ExtPublicKeyNode':
+        return ExtPublicKeyNode(
+            ext_public_key=self.ext_private_key.ext_public_key,
+            depth=self.depth,
+            parent_fingerprint=self.parent_fingerprint,
+            child_number=self.child_number,
+            parent=self.parent,
+        )
+
+    def child_ext_private_key_node(self, i: Index) -> 'ExtPrivateKeyNode':
+        child_ext_private_key = self.ext_private_key.child_ext_private_key(i)
+        fingerprint = self.ext_private_key.fingerprint
+
+        return type(self)(
+            ext_private_key=child_ext_private_key,
+            depth=self.depth + 1,
+            parent_fingerprint=fingerprint,
+            child_number=i,
+            parent=self,
+        )
 
 
-def parse_path(path: str) -> List[int]:
+class ExtPublicKeyNode(ExtKeyNode):
+    __slots__ = ('ext_public_key',)
+
+    ext_public_key: ExtPublicKey
+
+    def __init__(self, *, ext_public_key: ExtPublicKey, **kwargs: Any) -> None:
+        self.ext_public_key = ext_public_key
+
+        super().__init__(**kwargs)
+
+    def get_key_bytes(self) -> bytes:
+        return serialize_curve_point(self.ext_public_key.public_key)
+
+    def get_chain_code(self) -> bytes:
+        return self.ext_public_key.chain_code
+
+    def child_ext_public_key_node(self, i: Index) -> 'ExtPublicKeyNode':
+        child_ext_public_key = self.ext_public_key.child_ext_public_key(i)
+        fingerprint = self.ext_public_key.fingerprint
+
+        return type(self)(
+            ext_public_key=child_ext_public_key,
+            depth=self.depth + 1,
+            parent_fingerprint=fingerprint,
+            child_number=i,
+            parent=self,
+        )
+
+
+def parse_path(path: str) -> Tuple[Index, ...]:
     if path.endswith('/'):
         raise ValueError(f'Path must not end with slash: {repr(path)}')
 
@@ -324,43 +413,14 @@ def parse_path(path: str) -> List[int]:
         else:
             child_nums.append(child_num)
 
-    return child_nums
+    return tuple(child_nums)
 
 
-class ExtKeys(NamedTuple):
-    ext_private: ExtPrivateKey
-    ext_public: ExtPublicKey
-    depth: int
-    parent_fingerprint: Fingerprint
-    child_number: Index
+def ext_key_node_from_path(seed_hex_str: str, path: str) -> ExtPrivateKeyNode:
+    master_node = ExtPrivateKeyNode.master_from_hexstr(seed_hex_str)
 
+    child_node = master_node
+    for i in parse_path(path):
+        child_node = child_node.child_ext_private_key_node(i)
 
-def ext_keys_from_path(seed_hex_str: str, path: str) -> ExtKeys:
-    ext_master = ExtPrivateKey.master_from_hexstr(seed_hex_str)
-
-    child_nums = parse_path(path)
-    if len(child_nums) == 0:
-        # Return info for master keys
-        return ExtKeys(
-            ext_master,
-            ext_master.ext_public_key,
-            0,
-            b'\x00' * 4,
-            0,
-        )
-
-    ext_par = None
-    ext_child = ext_master
-    for i in child_nums:
-        ext_par = ext_child
-        ext_child = ext_par.child_ext_private_key(i)
-
-    assert ext_par is not None
-
-    return ExtKeys(
-        ext_child,
-        ext_child.ext_public_key,
-        len(child_nums),
-        fingerprint_from_priv_key(ext_par.private_key),
-        child_nums[-1],
-    )
+    return child_node
