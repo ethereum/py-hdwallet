@@ -1,12 +1,12 @@
 import pytest
 
 from hdwallet.keys import (
-    ext_key_node_from_path,
+    private_wallet_node_from_path,
 )
 
 
 @pytest.mark.parametrize(
-    'seed,path,ext_pub_ser,ext_prv_ser',  # type: ignore
+    'seed,path,expected_public_base58,expected_private_base58',  # type: ignore
     (
         # BIP 32 test vector 1
         (
@@ -97,16 +97,17 @@ from hdwallet.keys import (
         ),
     ),
 )
-def test_bip32_test_vectors(seed, path, ext_pub_ser, ext_prv_ser):
-    ext_private_key_node = ext_key_node_from_path(seed, path)
-    ext_public_key_node = ext_private_key_node.ext_public_key_node
+def test_bip32_test_vectors(seed, path, expected_public_base58, expected_private_base58):
+    private_wallet_node = private_wallet_node_from_path(seed, path)
+    public_wallet_node = private_wallet_node.public_wallet_node
 
-    c_prv = ext_private_key_node.ext_private_key.chain_code
-    c_pub = ext_public_key_node.ext_public_key.chain_code
-    assert c_prv == c_pub
+    private_chain_code = private_wallet_node.ext_private_key.chain_code
+    public_chain_code = public_wallet_node.ext_public_key.chain_code
 
-    base58_prv = ext_private_key_node.to_base58('mainnet_private')
-    assert base58_prv == ext_prv_ser
+    assert private_chain_code == public_chain_code
 
-    base58_pub = ext_public_key_node.to_base58('mainnet_public')
-    assert base58_pub == ext_pub_ser
+    private_base58 = private_wallet_node.to_base58('mainnet_private')
+    assert private_base58 == expected_private_base58
+
+    public_base58 = public_wallet_node.to_base58('mainnet_public')
+    assert public_base58 == expected_public_base58
