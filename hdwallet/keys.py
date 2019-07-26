@@ -322,6 +322,33 @@ class PrivateWalletNode(WalletNode):
 
         super().__init__(**kwargs)
 
+    @property
+    def serialized_key_bytes(self) -> bytes:
+        return b'\x00' + serialize_uint256(self.ext_private_key.private_key)
+
+    @property
+    def chain_code(self) -> bytes:
+        return self.ext_private_key.chain_code
+
+    def child_private_wallet_node(self, i: Index) -> 'PrivateWalletNode':
+        child_ext_private_key = self.ext_private_key.child_ext_private_key(i)
+        fingerprint = self.ext_private_key.fingerprint
+
+        return type(self)(
+            ext_private_key=child_ext_private_key,
+            depth=self.depth + 1,
+            parent_fingerprint=fingerprint,
+            child_number=i,
+            parent=self,
+        )
+
+    def child_from_path(self, path: str) -> 'PrivateWalletNode':
+        child_node = self
+        for i in parse_path(path):
+            child_node = child_node.child_private_wallet_node(i)
+
+        return child_node
+
     @classmethod
     def master_from_hexstr(cls, seed_hex_str: str) -> 'PrivateWalletNode':
         ext_private_key = ExtPrivateKey.master_from_hexstr(seed_hex_str)
@@ -334,14 +361,6 @@ class PrivateWalletNode(WalletNode):
         )
 
     @property
-    def serialized_key_bytes(self) -> bytes:
-        return b'\x00' + serialize_uint256(self.ext_private_key.private_key)
-
-    @property
-    def chain_code(self) -> bytes:
-        return self.ext_private_key.chain_code
-
-    @property
     def public_wallet_node(self) -> 'PublicWalletNode':
         return PublicWalletNode(
             ext_public_key=self.ext_private_key.ext_public_key,
@@ -349,18 +368,6 @@ class PrivateWalletNode(WalletNode):
             parent_fingerprint=self.parent_fingerprint,
             child_number=self.child_number,
             parent=self.parent,
-        )
-
-    def child_private_wallet_node(self, i: Index) -> 'PrivateWalletNode':
-        child_ext_private_key = self.ext_private_key.child_ext_private_key(i)
-        fingerprint = self.ext_private_key.fingerprint
-
-        return type(self)(
-            ext_private_key=child_ext_private_key,
-            depth=self.depth + 1,
-            parent_fingerprint=fingerprint,
-            child_number=i,
-            parent=self,
         )
 
 
@@ -394,6 +401,13 @@ class PublicWalletNode(WalletNode):
             parent=self,
         )
 
+    def child_from_path(self, path: str) -> 'PublicWalletNode':
+        child_node = self
+        for i in parse_path(path):
+            child_node = child_node.child_public_wallet_node(i)
+
+        return child_node
+
 
 def parse_path(path: str) -> Tuple[Index, ...]:
     if path.endswith('/'):
@@ -418,13 +432,3 @@ def parse_path(path: str) -> Tuple[Index, ...]:
             child_nums.append(child_num)
 
     return tuple(child_nums)
-
-
-def private_wallet_node_from_path(seed_hex_str: str, path: str) -> PrivateWalletNode:
-    master_node = PrivateWalletNode.master_from_hexstr(seed_hex_str)
-
-    child_node = master_node
-    for i in parse_path(path):
-        child_node = child_node.child_private_wallet_node(i)
-
-    return child_node

@@ -1,12 +1,12 @@
 import pytest
 
 from hdwallet.keys import (
-    private_wallet_node_from_path,
+    PrivateWalletNode,
 )
 
 
 @pytest.mark.parametrize(
-    'seed,path,expected_public_base58,expected_private_base58',  # type: ignore
+    'seed_hexstr,path,expected_public_base58,expected_private_base58',  # type: ignore
     (
         # BIP 32 test vector 1
         (
@@ -97,8 +97,12 @@ from hdwallet.keys import (
         ),
     ),
 )
-def test_bip32_test_vectors(seed, path, expected_public_base58, expected_private_base58):
-    private_wallet_node = private_wallet_node_from_path(seed, path)
+def test_bip32_test_vectors(seed_hexstr, path, expected_public_base58, expected_private_base58):
+    # Create master wallet node
+    master_node = PrivateWalletNode.master_from_hexstr(seed_hexstr)
+
+    # Get the correct child private and public wallet nodes
+    private_wallet_node = master_node.child_from_path(path)
     public_wallet_node = private_wallet_node.public_wallet_node
 
     private_chain_code = private_wallet_node.ext_private_key.chain_code
