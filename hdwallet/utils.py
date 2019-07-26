@@ -12,6 +12,8 @@ from ecdsa.ellipticcurve import (
 )
 
 from .typing import (
+    Fingerprint,
+    Identifier,
     PrivateKey,
     PublicKey,
 )
@@ -122,7 +124,7 @@ def hmac_sha512(key: bytes, data: bytes) -> bytes:
     return h.digest()
 
 
-def identifier_from_priv_key(k: PrivateKey) -> bytes:
+def identifier_from_priv_key(k: PrivateKey) -> Identifier:
     """
     Return identifier bytes for the given private key ``k`` as described in the
     BIP32 spec
@@ -137,7 +139,7 @@ def identifier_from_priv_key(k: PrivateKey) -> bytes:
     return identifier_from_pub_key(K)
 
 
-def identifier_from_pub_key(K: PublicKey) -> bytes:
+def identifier_from_pub_key(K: PublicKey) -> Identifier:
     """
     Return identifier bytes for the given public key point ``K`` as described
     in the BIP32 spec
@@ -157,7 +159,7 @@ def identifier_from_pub_key(K: PublicKey) -> bytes:
     return identifier
 
 
-def fingerprint_from_priv_key(k: PrivateKey) -> bytes:
+def fingerprint_from_priv_key(k: PrivateKey) -> Fingerprint:
     """
     Return fingerprint bytes for the given private key ``k`` as described in
     the BIP32 spec
@@ -172,7 +174,7 @@ def fingerprint_from_priv_key(k: PrivateKey) -> bytes:
     return fingerprint_from_pub_key(K)
 
 
-def fingerprint_from_pub_key(K: PublicKey) -> bytes:
+def fingerprint_from_pub_key(K: PublicKey) -> Fingerprint:
     """
     Return fingerprint bytes for the given public key point ``K`` as described
     in the BIP32 spec

@@ -17,6 +17,7 @@ from .exceptions import (
 from .typing import (
     ChainCode,
     Fingerprint,
+    Identifier,
     Index,
     PrivateKey,
     PublicKey,
@@ -149,7 +150,7 @@ class ExtPrivateKey:
         return ExtPublicKey(curve_point_from_int(self.private_key), self.chain_code)
 
     @property
-    def identifier(self) -> bytes:
+    def identifier(self) -> Identifier:
         """
         The identifier bytes for an extended private key as described in the
         BIP32 spec
@@ -158,7 +159,7 @@ class ExtPrivateKey:
         return identifier_from_priv_key(self.private_key)
 
     @property
-    def fingerprint(self) -> bytes:
+    def fingerprint(self) -> Fingerprint:
         """
         The fingerprint bytes for an extended private key as described in the
         BIP32 spec
@@ -215,7 +216,7 @@ class ExtPublicKey:
         return type(self)(public_key_i, chain_code_i)
 
     @property
-    def identifier(self) -> bytes:
+    def identifier(self) -> Identifier:
         """
         The identifier bytes for an extended public key as described in the
         BIP32 spec
@@ -224,7 +225,7 @@ class ExtPublicKey:
         return identifier_from_pub_key(self.public_key)
 
     @property
-    def fingerprint(self) -> bytes:
+    def fingerprint(self) -> Fingerprint:
         """
         The fingerprint bytes for an extended public key as described in the
         BIP32 spec
@@ -236,7 +237,7 @@ class ExtPublicKey:
 def priv_to_base58(
     network: str,
     depth: int,
-    fingerprint: bytes,
+    fingerprint: Fingerprint,
     child_number: int,
     chain_code: bytes,
     private_key: PrivateKey,
@@ -271,7 +272,7 @@ def priv_to_base58(
 def pub_to_base58(
     network: str,
     depth: int,
-    fingerprint: bytes,
+    fingerprint: Fingerprint,
     child_number: int,
     chain_code: bytes,
     public_key: PublicKey,

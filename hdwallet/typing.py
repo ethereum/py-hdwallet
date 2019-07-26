@@ -7,4 +7,6 @@ PublicKey = Point
 
 ChainCode = bytes
 Index = int
+
+Identifier = bytes
 Fingerprint = bytes
