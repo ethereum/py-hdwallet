@@ -149,8 +149,7 @@ class ExtPrivateKey:
     @property
     def identifier(self) -> Identifier:
         """
-        The identifier bytes for an extended private key as described in the
-        BIP32 spec
+        The identifier bytes for an extended private key as described in BIP32
         (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
         """
         return identifier_from_priv_key(self.private_key)
@@ -158,8 +157,7 @@ class ExtPrivateKey:
     @property
     def fingerprint(self) -> Fingerprint:
         """
-        The fingerprint bytes for an extended private key as described in the
-        BIP32 spec
+        The fingerprint bytes for an extended private key as described in BIP32
         (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
         """
         return fingerprint_from_priv_key(self.private_key)
@@ -220,8 +218,7 @@ class ExtPublicKey:
     @property
     def identifier(self) -> Identifier:
         """
-        The identifier bytes for an extended public key as described in the
-        BIP32 spec
+        The identifier bytes for an extended public key as described in BIP32
         (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
         """
         return identifier_from_pub_key(self.public_key)
@@ -229,8 +226,7 @@ class ExtPublicKey:
     @property
     def fingerprint(self) -> Fingerprint:
         """
-        The fingerprint bytes for an extended public key as described in the
-        BIP32 spec
+        The fingerprint bytes for an extended public key as described in BIP32
         (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
         """
         return fingerprint_from_pub_key(self.public_key)

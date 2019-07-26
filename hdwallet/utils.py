@@ -27,7 +27,7 @@ def curve_point_from_int(p: int) -> Point:
     Return the elliptic curve point resulting from multiplication of the
     sec256k1 base point with the integer ``p``.
 
-    Corresponds directly to the "point(p)" function in the BIP32 spec
+    Corresponds directly to the "point(p)" function in BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param p: The integer to multiply with the base point.
@@ -43,7 +43,7 @@ def serialize_uint32(n: int) -> bytes:
     Serialize an unsigned integer ``n`` as 4 bytes (32 bits) in big-endian
     order.
 
-    Corresponds directly to the "ser_32(i)" function in the BIP32 spec
+    Corresponds directly to the "ser_32(i)" function in BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param n: The integer to be serialized.
@@ -58,7 +58,7 @@ def serialize_uint256(n: int) -> bytes:
     Serialize an unsigned integer ``n`` as 32 bytes (256 bits) in big-endian
     order.
 
-    Corresponds directly to the "ser_256(p)" function in the BIP32 spec
+    Corresponds directly to the "ser_256(p)" function in BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param n: The integer to be serialized.
@@ -73,7 +73,7 @@ def serialize_curve_point(p: Point) -> bytes:
     Serialize an elliptic curve point ``p`` in compressed form as described in
     SEC1v2 (https://secg.org/sec1-v2.pdf) section 2.3.3.
 
-    Corresponds directly to the "ser_P(P)" function in the BIP32 spec
+    Corresponds directly to the "ser_P(P)" function in BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param p: The elliptic curve point to be serialized.
@@ -93,7 +93,7 @@ def parse_uint256(bs: bytes) -> int:
     Parse an unsigned integer encoded in big-endian order from the length 32
     byte sequence ``bs``.
 
-    Corresponds directly to the "parse_256(p)" function in the BIP32 spec
+    Corresponds directly to the "parse_256(p)" function in BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param bs: The byte sequence to be parsed.
@@ -111,7 +111,7 @@ def hmac_sha512(key: bytes, data: bytes) -> bytes:
     secret key ``key``.
 
     Corresponds directly to the "HMAC-SHA512(Key = ..., Data = ...)" function
-    in the BIP32 spec
+    in BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#conventions).
 
     :param key: The secret key used for HMAC calculation.
@@ -126,8 +126,8 @@ def hmac_sha512(key: bytes, data: bytes) -> bytes:
 
 def identifier_from_priv_key(k: PrivateKey) -> Identifier:
     """
-    Return identifier bytes for the given private key ``k`` as described in the
-    BIP32 spec
+    Return identifier bytes for the given private key ``k`` as described in
+    BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
 
     :param k: The private key for which an identifier should be generated.
@@ -142,7 +142,7 @@ def identifier_from_priv_key(k: PrivateKey) -> Identifier:
 def identifier_from_pub_key(K: PublicKey) -> Identifier:
     """
     Return identifier bytes for the given public key point ``K`` as described
-    in the BIP32 spec
+    in BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
 
     :param k: The public key for which an identifier should be generated.
@@ -162,7 +162,7 @@ def identifier_from_pub_key(K: PublicKey) -> Identifier:
 def fingerprint_from_priv_key(k: PrivateKey) -> Fingerprint:
     """
     Return fingerprint bytes for the given private key ``k`` as described in
-    the BIP32 spec
+    BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
 
     :param k: The private key for which a fingerprint should be generated.
@@ -177,7 +177,7 @@ def fingerprint_from_priv_key(k: PrivateKey) -> Fingerprint:
 def fingerprint_from_pub_key(K: PublicKey) -> Fingerprint:
     """
     Return fingerprint bytes for the given public key point ``K`` as described
-    in the BIP32 spec
+    in BIP32
     (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers).
 
     :param k: The public key for which a fingerprint should be generated.
