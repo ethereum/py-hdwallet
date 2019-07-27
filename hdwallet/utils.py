@@ -199,6 +199,23 @@ def fingerprint_from_pub_key(K: PublicKey) -> Fingerprint:
 
 
 def parse_bip32_path(path: str) -> Tuple[Index, ...]:
+    """
+    Parse a BIP32 key path into a tuple of child indices.  Hardened indices
+    will be converted into their canonical form which adds ``2^31`` (the
+    minimum hardened key index) to the index.  For more information, see
+    https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#the-key-tree.
+
+    For example:
+
+        >>> from hdwallet.utils import parse_bip32_path
+        >>> parse_bip32_path('m/0h/1/2h/2')
+        (2147483648, 1, 2147483650, 2)
+
+    :param path: The BIP32 string representation of a key path.
+
+    :return: A tuple of integers representing the indices of children in a key
+        derivation path.
+    """
     path_start_is_valid = any((
         path in ('m', 'M'),
         path.startswith('m/'),
