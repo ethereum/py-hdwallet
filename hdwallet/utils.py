@@ -213,10 +213,8 @@ def parse_bip32_path(path: str) -> Tuple[Index, ...]:
         raise ValueError(f'Path must not end with slash: {repr(path)}')
 
     path_comps = path.split('/')
-    if len(path_comps) < 1:
-        raise ValueError(f'Path has no components: {repr(path)}')
-
     child_comps = path_comps[1:]
+
     child_nums = []
     for comp in child_comps:
         match = PATH_COMPONENT_RE.match(comp)
