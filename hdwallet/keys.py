@@ -291,8 +291,7 @@ class WalletNode(abc.ABC):
 
     def to_base58(self, network: str) -> str:
         """
-        Return the base58 serialization of a wallet node including its extended
-        private or public key.
+        Return the base58 serialization of a wallet node.
 
         :param network: The label of the network for which the serialized key
             is valid.
