@@ -385,8 +385,13 @@ class PrivateWalletNode(WalletNode):
 
         :return: The child wallet node located at the given relative path.
         """
+        if self.depth == 0:
+            child_numbers = parse_bip32_path(path, path_type='master')
+        else:
+            child_numbers = parse_bip32_path(path, path_type='relative')
+
         child_node = self
-        for i in parse_bip32_path(path):
+        for i in child_numbers:
             child_node = child_node.child_private_wallet_node(i)
 
         return child_node
@@ -472,8 +477,13 @@ class PublicWalletNode(WalletNode):
 
         :return: The child wallet node located at the given relative path.
         """
+        if self.depth == 0:
+            child_numbers = parse_bip32_path(path, path_type='master')
+        else:
+            child_numbers = parse_bip32_path(path, path_type='relative')
+
         child_node = self
-        for i in parse_bip32_path(path):
+        for i in child_numbers:
             child_node = child_node.child_public_wallet_node(i)
 
         return child_node
