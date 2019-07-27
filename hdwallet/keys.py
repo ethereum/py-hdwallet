@@ -380,12 +380,14 @@ class PrivateWalletNode(WalletNode):
 
     def child_from_path(self, path: str) -> 'PrivateWalletNode':
         """
-        Return the child private wallet node located at the given path relative
-        to a parent private wallet node.
+        Return the child private wallet node located at the given absolute or
+        relative path for a parent private wallet node.  If a parent private
+        wallet node is the master private wallet node, then the given path must
+        be absolute (it must begin with "m" or "M").
 
-        :param path: The relative path of the child wallet node.
+        :param path: The path of the child wallet node.
 
-        :return: The child wallet node located at the given relative path.
+        :return: The child wallet node located at the given path.
         """
         if self.depth == 0:
             child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_ABSOLUTE)
@@ -472,12 +474,14 @@ class PublicWalletNode(WalletNode):
 
     def child_from_path(self, path: str) -> 'PublicWalletNode':
         """
-        Return the child public wallet node located at the given path relative
-        to a parent public wallet node.
+        Return the child public wallet node located at the given absolute or
+        relative path for a parent public wallet node.  If a parent public
+        wallet node is the master public wallet node, then the given path must
+        be absolute (it must begin with "m" or "M").
 
-        :param path: The relative path of the child wallet node.
+        :param path: The path of the child wallet node.
 
-        :return: The child wallet node located at the given relative path.
+        :return: The child wallet node located at the given path.
         """
         if self.depth == 0:
             child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_ABSOLUTE)
