@@ -1,14 +1,14 @@
 # py-hdwallet
 
-[![Join the chat at https://gitter.im/ethereum/py-hdwallet](https://badges.gitter.im/ethereum/py-hdwallet.svg)](https://gitter.im/ethereum/py-hdwallet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://circleci.com/gh/ethereum/py-hdwallet.svg?style=shield)](https://circleci.com/gh/ethereum/py-hdwallet)
+[![Join the chat at https://gitter.im/davesque/py-hdwallet](https://badges.gitter.im/davesque/py-hdwallet.svg)](https://gitter.im/davesque/py-hdwallet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://circleci.com/gh/davesque/py-hdwallet.svg?style=shield)](https://circleci.com/gh/davesque/py-hdwallet)
 [![PyPI version](https://badge.fury.io/py/py-hdwallet.svg)](https://badge.fury.io/py/py-hdwallet)
 [![Python versions](https://img.shields.io/pypi/pyversions/py-hdwallet.svg)](https://pypi.python.org/pypi/py-hdwallet)
 [![Docs build](https://readthedocs.org/projects/py-hdwallet/badge/?version=latest)](http://py-hdwallet.readthedocs.io/en/latest/?badge=latest)
    
 HD wallet generator.
 
-***WARNING: This package has not been peer reviewed or audited.  Use at your own risk!***
+***WARNING: THIS PACKAGE HAS NOT BEEN PEER REVIEWED OR AUDITED.  USE AT YOUR OWN RISK!!!!***
 
 Read more in the [documentation on ReadTheDocs](https://py-hdwallet.readthedocs.io/). [View the change log](https://py-hdwallet.readthedocs.io/en/latest/releases.html).
 
@@ -21,7 +21,7 @@ pip install py-hdwallet
 ## Developer Setup
 
 If you would like to hack on py-hdwallet, please check out the [Snake Charmers
-Tactical Manual](https://github.com/ethereum/snake-charmers-tactical-manual)
+Tactical Manual](https://github.com/davesque/snake-charmers-tactical-manual)
 for information on how we do:
 
 - Testing
@@ -34,7 +34,7 @@ for information on how we do:
 You can set up your dev environment with:
 
 ```sh
-git clone git@github.com:ethereum/py-hdwallet.git
+git clone git@github.com:davesque/py-hdwallet.git
 cd py-hdwallet
 virtualenv -p python3 venv
 . venv/bin/activate
