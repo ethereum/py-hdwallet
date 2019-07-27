@@ -1,5 +1,9 @@
 import hashlib
 import hmac
+import re
+from typing import (
+    Tuple,
+)
 
 from ecdsa import (
     SECP256k1,
@@ -14,12 +18,17 @@ from ecdsa.ellipticcurve import (
 from .typing import (
     Fingerprint,
     Identifier,
+    Index,
     PrivateKey,
     PublicKey,
 )
 
+MIN_HARDENED_INDEX = 2 ** 31
+
 SECP256k1_ORD = SECP256k1.order
 SECP256k1_GEN = SECP256k1.generator
+
+PATH_COMPONENT_RE = re.compile(r'^([0-9]+)(h)?$')
 
 
 def curve_point_from_int(p: int) -> Point:
@@ -187,3 +196,38 @@ def fingerprint_from_pub_key(K: PublicKey) -> Fingerprint:
     identifier = identifier_from_pub_key(K)
 
     return identifier[:4]
+
+
+def parse_bip32_path(path: str) -> Tuple[Index, ...]:
+    path_start_is_valid = any((
+        path in ('m', 'M'),
+        path.startswith('m/'),
+        path.startswith('M/'),
+    ))
+    if not path_start_is_valid:
+        raise ValueError(
+            f'Path must begin with "m/" or "M/" or be equal to "m" or "M": {repr(path)}',
+        )
+
+    if path.endswith('/'):
+        raise ValueError(f'Path must not end with slash: {repr(path)}')
+
+    path_comps = path.split('/')
+    if len(path_comps) < 1:
+        raise ValueError(f'Path has no components: {repr(path)}')
+
+    child_comps = path_comps[1:]
+    child_nums = []
+    for comp in child_comps:
+        match = PATH_COMPONENT_RE.match(comp)
+        if match is None:
+            raise ValueError(f'Invalid path component: {repr(comp)}')
+
+        child_num_str, hardened = match.groups()
+        child_num = int(child_num_str)
+        if hardened is not None:
+            child_nums.append(child_num + MIN_HARDENED_INDEX)
+        else:
+            child_nums.append(child_num)
+
+    return tuple(child_nums)

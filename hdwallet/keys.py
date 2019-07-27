@@ -1,10 +1,8 @@
 import abc
 import binascii
-import re
 from typing import (
     Any,
     Optional,
-    Tuple,
     cast,
 )
 
@@ -25,6 +23,7 @@ from .typing import (
     PublicKey,
 )
 from .utils import (
+    MIN_HARDENED_INDEX,
     SECP256k1_ORD,
     curve_point_from_int,
     fingerprint_from_priv_key,
@@ -32,13 +31,12 @@ from .utils import (
     hmac_sha512,
     identifier_from_priv_key,
     identifier_from_pub_key,
+    parse_bip32_path,
     parse_uint256,
     serialize_curve_point,
     serialize_uint32,
     serialize_uint256,
 )
-
-MIN_HARDENED_INDEX = 2 ** 31
 
 BITCOIN_VERSION_BYTES = {
     'mainnet_public': binascii.unhexlify('0488b21e'),
@@ -46,8 +44,6 @@ BITCOIN_VERSION_BYTES = {
     'testnet_public': binascii.unhexlify('043587cf'),
     'testnet_private': binascii.unhexlify('04358394'),
 }
-
-PATH_COMPONENT_RE = re.compile(r'^([0-9]+)(h)?$')
 
 
 class ExtPrivateKey:
@@ -363,7 +359,7 @@ class PrivateWalletNode(WalletNode):
 
     def child_from_path(self, path: str) -> 'PrivateWalletNode':
         child_node = self
-        for i in parse_path(path):
+        for i in parse_bip32_path(path):
             child_node = child_node.child_private_wallet_node(i)
 
         return child_node
@@ -422,32 +418,7 @@ class PublicWalletNode(WalletNode):
 
     def child_from_path(self, path: str) -> 'PublicWalletNode':
         child_node = self
-        for i in parse_path(path):
+        for i in parse_bip32_path(path):
             child_node = child_node.child_public_wallet_node(i)
 
         return child_node
-
-
-def parse_path(path: str) -> Tuple[Index, ...]:
-    if path.endswith('/'):
-        raise ValueError(f'Path must not end with slash: {repr(path)}')
-
-    path_comps = path.split('/')
-    if len(path_comps) < 1:
-        raise ValueError(f'Path has no components: {repr(path)}')
-
-    child_comps = path_comps[1:]
-    child_nums = []
-    for comp in child_comps:
-        match = PATH_COMPONENT_RE.match(comp)
-        if match is None:
-            raise ValueError(f'Invalid path component: {repr(comp)}')
-
-        child_num_str, hardened = match.groups()
-        child_num = int(child_num_str)
-        if hardened is not None:
-            child_nums.append(child_num + MIN_HARDENED_INDEX)
-        else:
-            child_nums.append(child_num)
-
-    return tuple(child_nums)
