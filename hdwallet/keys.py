@@ -235,6 +235,10 @@ class ExtPublicKey:
 
 
 class WalletNode(abc.ABC):
+    """
+    Base class for classes that represent extended private or public keys
+    located somewhere in an HD wallet's hierarchy.
+    """
     __slots__ = ('depth', 'parent_fingerprint', 'child_number', 'parent')
 
     depth: int
@@ -242,14 +246,11 @@ class WalletNode(abc.ABC):
     child_number: Index
     parent: Optional['WalletNode']
 
-    def __init__(
-        self,
-        *,
-        depth: int,
-        parent_fingerprint: Fingerprint,
-        child_number: Index,
-        parent: 'WalletNode' = None
-    ) -> None:
+    def __init__(self, *,
+                 depth: int,
+                 parent_fingerprint: Fingerprint,
+                 child_number: Index,
+                 parent: 'WalletNode' = None) -> None:
         self.depth = depth
         """
         The zero-indexed depth at which a node's extended key was generated in
@@ -272,18 +273,36 @@ class WalletNode(abc.ABC):
 
         self.parent = parent
         """
-        If given, the parent key node from which a key node was generated.
+        If present, the parent wallet node from which a wallet node was
+        generated.  For master keys, or keys loaded from a serialized format,
+        this value will be ``None``.
         """
 
     @abc.abstractproperty
     def serialized_key_bytes(self) -> bytes:
+        """
+        Serialized bytes for a wallet node's private or public key used in the
+        node's base58 serialization.
+        """
         pass
 
     @abc.abstractproperty
     def chain_code(self) -> bytes:
+        """
+        The chain code for a wallet node's private or public key.
+        """
         pass
 
     def to_base58(self, network: str) -> str:
+        """
+        Return the base58 serialization of a wallet node including its extended
+        private or public key.
+
+        :param network: The label of the network for which the serialized key
+            is valid.
+
+        :return: A string containing the base58 serialization of a wallet node.
+        """
         version_bytes = BITCOIN_VERSION_BYTES[network]
         depth_byte = self.depth.to_bytes(1, 'big')
         child_number_bytes = serialize_uint32(self.child_number)
