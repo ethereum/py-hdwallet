@@ -24,6 +24,8 @@ from .typing import (
 )
 from .utils import (
     MIN_HARDENED_INDEX,
+    PATH_TYPE_ABSOLUTE,
+    PATH_TYPE_RELATIVE,
     SECP256k1_ORD,
     curve_point_from_int,
     fingerprint_from_priv_key,
@@ -386,9 +388,9 @@ class PrivateWalletNode(WalletNode):
         :return: The child wallet node located at the given relative path.
         """
         if self.depth == 0:
-            child_numbers = parse_bip32_path(path, path_type='master')
+            child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_ABSOLUTE)
         else:
-            child_numbers = parse_bip32_path(path, path_type='relative')
+            child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_RELATIVE)
 
         child_node = self
         for i in child_numbers:
@@ -478,9 +480,9 @@ class PublicWalletNode(WalletNode):
         :return: The child wallet node located at the given relative path.
         """
         if self.depth == 0:
-            child_numbers = parse_bip32_path(path, path_type='master')
+            child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_ABSOLUTE)
         else:
-            child_numbers = parse_bip32_path(path, path_type='relative')
+            child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_RELATIVE)
 
         child_node = self
         for i in child_numbers:

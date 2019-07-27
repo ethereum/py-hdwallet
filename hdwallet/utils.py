@@ -198,15 +198,15 @@ def fingerprint_from_pub_key(K: PublicKey) -> Fingerprint:
     return identifier[:4]
 
 
-PATH_TYPE_MASTER = 'master'
+PATH_TYPE_ABSOLUTE = 'master'
 PATH_TYPE_RELATIVE = 'relative'
 PATH_TYPES = {
-    PATH_TYPE_MASTER,
+    PATH_TYPE_ABSOLUTE,
     PATH_TYPE_RELATIVE,
 }
 
 
-def parse_bip32_path(path: str, path_type: str = PATH_TYPE_MASTER) -> Tuple[Index, ...]:
+def parse_bip32_path(path: str, path_type: str = PATH_TYPE_ABSOLUTE) -> Tuple[Index, ...]:
     r"""
     Parse a BIP32 key path into a tuple of child indices.  Hardened indices
     will be converted into their canonical form which adds ``2^31`` (the
@@ -260,7 +260,7 @@ def parse_bip32_path(path: str, path_type: str = PATH_TYPE_MASTER) -> Tuple[Inde
         # equal to "m" or "M".
         path_to_parse = path[2:]
     else:
-        if path_type == PATH_TYPE_MASTER:
+        if path_type == PATH_TYPE_ABSOLUTE:
             raise ValueError(f'Master path must begin with "m" or "M": {repr(path)}')
         path_to_parse = path
 

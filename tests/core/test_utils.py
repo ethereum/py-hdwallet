@@ -2,7 +2,7 @@ import pytest
 
 from hdwallet.utils import (
     MIN_HARDENED_INDEX,
-    PATH_TYPE_MASTER,
+    PATH_TYPE_ABSOLUTE,
     PATH_TYPE_RELATIVE,
     parse_bip32_path,
 )
@@ -13,62 +13,62 @@ from hdwallet.utils import (
     (
         (
             'm',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (),
         ),
         (
             'm/0',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (0,),
         ),
         (
             'm/0/2147483647h',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (0, 2147483647 + MIN_HARDENED_INDEX),
         ),
         (
             'm/0/2147483647h/1',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (0, 2147483647 + MIN_HARDENED_INDEX, 1),
         ),
         (
             'm/0/2147483647h/1/2147483646h',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (0, 2147483647 + MIN_HARDENED_INDEX, 1, 2147483646 + MIN_HARDENED_INDEX),
         ),
         (
             'm/0/2147483647h/1/2147483646h/2',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (0, 2147483647 + MIN_HARDENED_INDEX, 1, 2147483646 + MIN_HARDENED_INDEX, 2),
         ),
         (
             'm/0h',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (MIN_HARDENED_INDEX,),
         ),
         (
             'm/0h/1',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (MIN_HARDENED_INDEX, 1),
         ),
         (
             'm/0h/1/2h',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (MIN_HARDENED_INDEX, 1, 2 + MIN_HARDENED_INDEX),
         ),
         (
             'm/0h/1/2h/2',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (MIN_HARDENED_INDEX, 1, 2 + MIN_HARDENED_INDEX, 2),
         ),
         (
             'm/0h/1/2h/2/1000000000',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (MIN_HARDENED_INDEX, 1, 2 + MIN_HARDENED_INDEX, 2, 1000000000),
         ),
         (
             'M/0h/1/2h/2',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             (MIN_HARDENED_INDEX, 1, 2 + MIN_HARDENED_INDEX, 2),
         ),
         (
@@ -92,22 +92,22 @@ def test_parse_bip32_path_master_paths(path, path_type, parsed):
         ),
         (
             '/m/0/2147483647h/1',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             'Path must not begin with slash',
         ),
         (
             'm/0/2147483647h/1/',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             'Path must not end with slash',
         ),
         (
             '',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             'Master path must begin with'
         ),
         (
             '0/2147483647h',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             'Master path must begin with',
         ),
         (
@@ -117,12 +117,12 @@ def test_parse_bip32_path_master_paths(path, path_type, parsed):
         ),
         (
             'm/0/2147483647H/1',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             'Invalid path component'
         ),
         (
             'm/0/asdfasdf/1',
-            PATH_TYPE_MASTER,
+            PATH_TYPE_ABSOLUTE,
             'Invalid path component'
         ),
     ),
