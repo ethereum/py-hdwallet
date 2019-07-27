@@ -97,7 +97,11 @@ from hdwallet.keys import (
         ),
     ),
 )
-def test_bip32_test_vectors(seed_hexstr, path, expected_public_base58, expected_private_base58):
+def test_bip32_vectors(seed_hexstr, path, expected_public_base58, expected_private_base58):
+    """
+    Verifies that py-hdwallet produces the correct BIP32 test vectors
+    (https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#test-vectors).
+    """
     # Create master wallet node
     master_node = PrivateWalletNode.master_from_hexstr(seed_hexstr)
 
