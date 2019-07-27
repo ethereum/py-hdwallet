@@ -401,15 +401,37 @@ class PrivateWalletNode(WalletNode):
         return child_node
 
     @classmethod
-    def master_from_hexstr(cls, seed_hex_str: str) -> 'PrivateWalletNode':
-        ext_private_key = ExtPrivateKey.master_from_hexstr(seed_hex_str)
+    def master_from_ext_private_key(
+        cls,
+        ext_private_key: ExtPrivateKey,
+    ) -> 'PrivateWalletNode':
+        """
+        Return a master private wallet node created from an extended private
+        key.
 
+        :param ext_private_key: The extended private key to use when creating
+            the wallet node.
+
+        :return: A master private wallet node.
+        """
         return cls(
             ext_private_key=ext_private_key,
             depth=0,
             parent_fingerprint=b'\x00' * 4,
             child_number=0,
         )
+
+    @classmethod
+    def master_from_bytes(cls, bs: bytes) -> 'PrivateWalletNode':
+        ext_private_key = ExtPrivateKey.master_from_bytes(bs)
+
+        return cls.master_from_ext_private_key(ext_private_key)
+
+    @classmethod
+    def master_from_hexstr(cls, seed_hex_str: str) -> 'PrivateWalletNode':
+        ext_private_key = ExtPrivateKey.master_from_hexstr(seed_hex_str)
+
+        return cls.master_from_ext_private_key(ext_private_key)
 
     @property
     def public_wallet_node(self) -> 'PublicWalletNode':
