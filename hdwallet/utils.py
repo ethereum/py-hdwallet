@@ -198,40 +198,77 @@ def fingerprint_from_pub_key(K: PublicKey) -> Fingerprint:
     return identifier[:4]
 
 
-def parse_bip32_path(path: str) -> Tuple[Index, ...]:
-    """
+PATH_TYPE_MASTER = 'master'
+PATH_TYPE_RELATIVE = 'relative'
+PATH_TYPES = {
+    PATH_TYPE_MASTER,
+    PATH_TYPE_RELATIVE,
+}
+
+
+def parse_bip32_path(path: str, path_type: str = PATH_TYPE_MASTER) -> Tuple[Index, ...]:
+    r"""
     Parse a BIP32 key path into a tuple of child indices.  Hardened indices
     will be converted into their canonical form which adds ``2^31`` (the
     minimum hardened key index) to the index.  For more information, see
     https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#the-key-tree.
+
+    Relative paths may also be given that do not contain a reference to the
+    master node "m" or "M".
 
     For example:
 
         >>> from hdwallet.utils import parse_bip32_path
         >>> parse_bip32_path('m/0h/1/2h/2')
         (2147483648, 1, 2147483650, 2)
+        >>> parse_bip32_path('1/2h/2', path_type='relative')
+        (1, 2147483650, 2)
+        >>> parse_bip32_path('m/1/2h/2', path_type='relative')
+        Traceback (most recent call last):
+          ...
+        ValueError: Relative path may not begin with "m" or "M"
+        >>> parse_bip32_path('1/2h/2', path_type='master')
+        Traceback (most recent call last):
+          ...
+        ValueError: Master path must begin with "m" or "M"
 
     :param path: The BIP32 string representation of a key path.
+    :param path_type: The expected type of path to be parsed.  If equal to
+        ``'master'``, path must being with "m" or "M".  If equal to
+        ``'relative'``, path must **not** begin with "m" or "M".
 
     :return: A tuple of integers representing the indices of children in a key
         derivation path.
     """
-    path_start_is_valid = any((
+    if path_type not in PATH_TYPES:
+        raise ValueError(f'Unrecognized path type: {repr(path_type)}')
+
+    if path.startswith('/'):
+        raise ValueError(f'Path must not begin with slash: {repr(path)}')
+    if path.endswith('/'):
+        raise ValueError(f'Path must not end with slash: {repr(path)}')
+
+    path_starts_with_master = any((
         path in ('m', 'M'),
         path.startswith('m/'),
         path.startswith('M/'),
     ))
-    if not path_start_is_valid:
-        raise ValueError(
-            f'Path must begin with "m/" or "M/" or be equal to "m" or "M": {repr(path)}',
-        )
+    if path_starts_with_master:
+        if path_type == PATH_TYPE_RELATIVE:
+            raise ValueError(f'Relative path may not begin with "m" or "M": {repr(path)}')
+        # Clip off master portion.  This will also work when path is exactly
+        # equal to "m" or "M".
+        path_to_parse = path[2:]
+    else:
+        if path_type == PATH_TYPE_MASTER:
+            raise ValueError(f'Master path must begin with "m" or "M": {repr(path)}')
+        path_to_parse = path
 
-    if path.endswith('/'):
-        raise ValueError(f'Path must not end with slash: {repr(path)}')
+    if path_to_parse == '':
+        # Path is empty
+        return tuple()
 
-    path_comps = path.split('/')
-    child_comps = path_comps[1:]
-
+    child_comps = path_to_parse.split('/')
     child_nums = []
     for comp in child_comps:
         match = PATH_COMPONENT_RE.match(comp)
