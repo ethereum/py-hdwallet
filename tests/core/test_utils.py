@@ -78,7 +78,7 @@ from hdwallet.utils import (
         ),
     ),
 )
-def test_parse_bip32_path_master_paths(path, path_type, parsed):
+def test_parse_bip32_path(path, path_type, parsed):
     assert parse_bip32_path(path, path_type=path_type) == parsed
 
 
@@ -103,12 +103,12 @@ def test_parse_bip32_path_master_paths(path, path_type, parsed):
         (
             '',
             PATH_TYPE_ABSOLUTE,
-            'Master path must begin with'
+            'Absolute path must begin with'
         ),
         (
             '0/2147483647h',
             PATH_TYPE_ABSOLUTE,
-            'Master path must begin with',
+            'Absolute path must begin with',
         ),
         (
             'm/0/2147483647h',

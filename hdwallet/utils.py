@@ -198,7 +198,7 @@ def fingerprint_from_pub_key(K: PublicKey) -> Fingerprint:
     return identifier[:4]
 
 
-PATH_TYPE_ABSOLUTE = 'master'
+PATH_TYPE_ABSOLUTE = 'absolute'
 PATH_TYPE_RELATIVE = 'relative'
 PATH_TYPES = {
     PATH_TYPE_ABSOLUTE,
@@ -227,14 +227,14 @@ def parse_bip32_path(path: str, path_type: str = PATH_TYPE_ABSOLUTE) -> Tuple[In
         Traceback (most recent call last):
           ...
         ValueError: Relative path may not begin with "m" or "M"
-        >>> parse_bip32_path('1/2h/2', path_type='master')
+        >>> parse_bip32_path('1/2h/2', path_type='absolute')
         Traceback (most recent call last):
           ...
-        ValueError: Master path must begin with "m" or "M"
+        ValueError: Absolute path must begin with "m" or "M"
 
     :param path: The BIP32 string representation of a key path.
     :param path_type: The expected type of path to be parsed.  If equal to
-        ``'master'``, path must being with "m" or "M".  If equal to
+        ``'absolute'``, path must being with "m" or "M".  If equal to
         ``'relative'``, path must **not** begin with "m" or "M".
 
     :return: A tuple of integers representing the indices of children in a key
@@ -261,7 +261,7 @@ def parse_bip32_path(path: str, path_type: str = PATH_TYPE_ABSOLUTE) -> Tuple[In
         path_to_parse = path[2:]
     else:
         if path_type == PATH_TYPE_ABSOLUTE:
-            raise ValueError(f'Master path must begin with "m" or "M": {repr(path)}')
+            raise ValueError(f'Absolute path must begin with "m" or "M": {repr(path)}')
         path_to_parse = path
 
     if path_to_parse == '':
