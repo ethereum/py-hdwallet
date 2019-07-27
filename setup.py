@@ -45,7 +45,7 @@ with open('./README.md') as readme:
 setup(
     name='py-hdwallet',
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
-    version='0.1.0-alpha.0',
+    version='0.1.0-alpha.1',
     description="""py-hdwallet: HD wallet generator.""",
     long_description=long_description,
     long_description_content_type='text/markdown',
