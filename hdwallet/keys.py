@@ -277,15 +277,15 @@ class WalletNode(abc.ABC):
     @abc.abstractproperty
     def serialized_key_bytes(self) -> bytes:
         """
-        Serialized bytes for a wallet node's private or public key used in the
-        node's base58 serialization.
+        Serialized bytes for a wallet node's private or public key.  Used in
+        the node's base58 serialization.
         """
         pass
 
     @abc.abstractproperty
     def chain_code(self) -> bytes:
         """
-        The chain code for a wallet node's private or public key.
+        The chain code for a wallet node's extended private or public key.
         """
         pass
 
@@ -327,6 +327,10 @@ class WalletNode(abc.ABC):
 
 
 class PrivateWalletNode(WalletNode):
+    """
+    A class that represents an extended private key located somewhere in an HD
+    wallet's hierarchy.
+    """
     __slots__ = ('ext_private_key',)
 
     ext_private_key: ExtPrivateKey
@@ -338,10 +342,17 @@ class PrivateWalletNode(WalletNode):
 
     @property
     def serialized_key_bytes(self) -> bytes:
+        """
+        Serialized bytes for a private wallet node's private key.  Used in the
+        node's base58 serialization.
+        """
         return b'\x00' + serialize_uint256(self.ext_private_key.private_key)
 
     @property
     def chain_code(self) -> bytes:
+        """
+        The chain code of a private wallet node's extended private key.
+        """
         return self.ext_private_key.chain_code
 
     def child_private_wallet_node(self, i: Index) -> 'PrivateWalletNode':
@@ -386,6 +397,10 @@ class PrivateWalletNode(WalletNode):
 
 
 class PublicWalletNode(WalletNode):
+    """
+    A class that represents an extended public key located somewhere in an HD
+    wallet's hierarchy.
+    """
     __slots__ = ('ext_public_key',)
 
     ext_public_key: ExtPublicKey
@@ -397,10 +412,17 @@ class PublicWalletNode(WalletNode):
 
     @property
     def serialized_key_bytes(self) -> bytes:
+        """
+        Serialized bytes for a public wallet node's public key.  Used in the
+        node's base58 serialization.
+        """
         return serialize_curve_point(self.ext_public_key.public_key)
 
     @property
     def chain_code(self) -> bytes:
+        """
+        The chain code of a public wallet node's extended public key.
+        """
         return self.ext_public_key.chain_code
 
     def child_public_wallet_node(self, i: Index) -> 'PublicWalletNode':
