@@ -413,6 +413,9 @@ class PrivateWalletNode(WalletNode):
 
     @property
     def public_wallet_node(self) -> 'PublicWalletNode':
+        """
+        The public wallet node corresponding to a private wallet node.
+        """
         return PublicWalletNode(
             ext_public_key=self.ext_private_key.ext_public_key,
             depth=self.depth,
