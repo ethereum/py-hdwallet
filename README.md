@@ -6,8 +6,9 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/py-hdwallet.svg)](https://pypi.python.org/pypi/py-hdwallet)
 [![Docs build](https://readthedocs.org/projects/py-hdwallet/badge/?version=latest)](http://py-hdwallet.readthedocs.io/en/latest/?badge=latest)
    
-
 HD wallet generator.
+
+***WARNING: This package has not been peer reviewed or audited.  Use at your own risk!***
 
 Read more in the [documentation on ReadTheDocs](https://py-hdwallet.readthedocs.io/). [View the change log](https://py-hdwallet.readthedocs.io/en/latest/releases.html).
 
