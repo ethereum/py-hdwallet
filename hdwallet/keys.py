@@ -356,6 +356,15 @@ class PrivateWalletNode(WalletNode):
         return self.ext_private_key.chain_code
 
     def child_private_wallet_node(self, i: Index) -> 'PrivateWalletNode':
+        """
+        Return the child private wallet node at index ``i`` for a parent wallet
+        node.
+
+        :param i: The index of the child private wallet node.
+
+        :return: The child private wallet node at index ``i`` for a parent
+            wallet node.
+        """
         child_ext_private_key = self.ext_private_key.child_ext_private_key(i)
         fingerprint = self.ext_private_key.fingerprint
 
@@ -368,6 +377,14 @@ class PrivateWalletNode(WalletNode):
         )
 
     def child_from_path(self, path: str) -> 'PrivateWalletNode':
+        """
+        Return the child private wallet node located at the given path relative
+        to a parent private wallet node.
+
+        :param path: The relative path of the child wallet node.
+
+        :return: The child wallet node located at the given relative path.
+        """
         child_node = self
         for i in parse_bip32_path(path):
             child_node = child_node.child_private_wallet_node(i)
@@ -426,6 +443,15 @@ class PublicWalletNode(WalletNode):
         return self.ext_public_key.chain_code
 
     def child_public_wallet_node(self, i: Index) -> 'PublicWalletNode':
+        """
+        Return the child public wallet node at index ``i`` for a parent wallet
+        node.
+
+        :param i: The index of the child public wallet node.
+
+        :return: The child public wallet node at index ``i`` for a parent
+            wallet node.
+        """
         child_ext_public_key = self.ext_public_key.child_ext_public_key(i)
         fingerprint = self.ext_public_key.fingerprint
 
@@ -438,6 +464,14 @@ class PublicWalletNode(WalletNode):
         )
 
     def child_from_path(self, path: str) -> 'PublicWalletNode':
+        """
+        Return the child public wallet node located at the given path relative
+        to a parent public wallet node.
+
+        :param path: The relative path of the child wallet node.
+
+        :return: The child wallet node located at the given relative path.
+        """
         child_node = self
         for i in parse_bip32_path(path):
             child_node = child_node.child_public_wallet_node(i)
