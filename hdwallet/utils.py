@@ -234,7 +234,7 @@ def parse_bip32_path(path: str, path_type: str = PATH_TYPE_ABSOLUTE) -> Tuple[In
 
     :param path: The BIP32 string representation of a key path.
     :param path_type: The expected type of path to be parsed.  If equal to
-        ``'absolute'``, path must being with "m" or "M".  If equal to
+        ``'absolute'``, path must begin with "m" or "M".  If equal to
         ``'relative'``, path must **not** begin with "m" or "M".
 
     :return: A tuple of integers representing the indices of children in a key
