@@ -248,12 +248,12 @@ def parse_bip32_path(path: str, path_type: str = PATH_TYPE_ABSOLUTE) -> Tuple[In
     if path.endswith('/'):
         raise ValueError(f'Path must not end with slash: {repr(path)}')
 
-    path_starts_with_master = any((
+    path_is_absolute = any((
         path in ('m', 'M'),
         path.startswith('m/'),
         path.startswith('M/'),
     ))
-    if path_starts_with_master:
+    if path_is_absolute:
         if path_type == PATH_TYPE_RELATIVE:
             raise ValueError(f'Relative path may not begin with "m" or "M": {repr(path)}')
         # Clip off master portion.  This will also work when path is exactly
