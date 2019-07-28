@@ -51,7 +51,7 @@ BITCOIN_VERSION_BYTES = {
 class ExtPrivateKey:
     """
     A class to represent the key/chain-code tuple of an extended private key in
-    a wallet hierarchy.  Can represent the master extended private key or any
+    a wallet hierarchy.  Can represent a master extended private key or any
     child extended private key.
     """
     __slots__ = ('private_key', 'chain_code')
@@ -166,7 +166,7 @@ class ExtPrivateKey:
 class ExtPublicKey:
     """
     A class to represent the key/chain-code tuple of an extended public key in
-    a wallet hierarchy.  Can represent the master extended public key or any
+    a wallet hierarchy.  Can represent a master extended public key or any
     child extended public key.
     """
     __slots__ = ('public_key', 'chain_code')
@@ -382,8 +382,9 @@ class PrivateWalletNode(WalletNode):
         """
         Return the child private wallet node located at the given absolute or
         relative path for a parent private wallet node.  If a parent private
-        wallet node is the master private wallet node, then the given path must
-        be absolute (it must begin with "m" or "M").
+        wallet node is a master private wallet node, then the given path must
+        be absolute (it must begin with "m" or "M").  Otherwise, it must be
+        relative (must not begin with "m" or "M").
 
         :param path: The path of the child wallet node.
 
@@ -501,8 +502,9 @@ class PublicWalletNode(WalletNode):
         """
         Return the child public wallet node located at the given absolute or
         relative path for a parent public wallet node.  If a parent public
-        wallet node is the master public wallet node, then the given path must
-        be absolute (it must begin with "m" or "M").
+        wallet node is a master public wallet node, then the given path must be
+        absolute (it must begin with "m" or "M").  Otherwise, it must be
+        relative (must not begin with "m" or "M").
 
         :param path: The path of the child wallet node.
 
