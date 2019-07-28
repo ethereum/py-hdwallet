@@ -431,14 +431,32 @@ class PrivateWalletNode(WalletNode):
         )
 
     @classmethod
-    def master_from_bytes(cls, bs: bytes) -> 'PrivateWalletNode':
-        ext_private_key = ExtPrivateKey.master_from_bytes(bs)
+    def master_from_hexstr(cls, seed_hex_str: str) -> 'PrivateWalletNode':
+        """
+        Return a master private wallet node generated from seed bytes encoded
+        in the hex string ``hexstr``.
+
+        :param hexstr: A string containing a hex representation of the seed
+            bytes to use for master node generation.
+
+        :return: The master private wallet node resulting from generation with
+            seed bytes encoded in ``hexstr``.
+        """
+        ext_private_key = ExtPrivateKey.master_from_hexstr(seed_hex_str)
 
         return cls.master_from_ext_private_key(ext_private_key)
 
     @classmethod
-    def master_from_hexstr(cls, seed_hex_str: str) -> 'PrivateWalletNode':
-        ext_private_key = ExtPrivateKey.master_from_hexstr(seed_hex_str)
+    def master_from_bytes(cls, bs: bytes) -> 'PrivateWalletNode':
+        """
+        Return a master private wallet node generated from seed bytes ``bs``.
+
+        :param bs: The seed bytes to use for master node generation.
+
+        :return: The master private wallet node resulting from generation with
+            seed bytes ``bs``.
+        """
+        ext_private_key = ExtPrivateKey.master_from_bytes(bs)
 
         return cls.master_from_ext_private_key(ext_private_key)
 
