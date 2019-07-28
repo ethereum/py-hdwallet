@@ -276,6 +276,14 @@ class WalletNode(abc.ABC):
         this value will be ``None``.
         """
 
+    @property
+    def is_master(self) -> bool:
+        """
+        Equal to ``True`` if a wallet node is a master wallet node.  Otherwise,
+        ``False``.
+        """
+        return self.depth == 0
+
     @abc.abstractproperty
     def serialized_key_bytes(self) -> bytes:
         """
@@ -390,7 +398,7 @@ class PrivateWalletNode(WalletNode):
 
         :return: The child wallet node located at the given path.
         """
-        if self.depth == 0:
+        if self.is_master:
             child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_ABSOLUTE)
         else:
             child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_RELATIVE)
@@ -510,7 +518,7 @@ class PublicWalletNode(WalletNode):
 
         :return: The child wallet node located at the given path.
         """
-        if self.depth == 0:
+        if self.is_master:
             child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_ABSOLUTE)
         else:
             child_numbers = parse_bip32_path(path, path_type=PATH_TYPE_RELATIVE)
